@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WHATSON.EXE - Christchurch & Canterbury</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0a0a;--fg:#e8e8e6;--dim:#8a8a87;--rule:#5a5a58;--hi:#ffffff}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:"IBM Plex Mono",ui-monospace,monospace;
+    font-size:15px;line-height:1.35;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1100px;margin:0 auto;padding:28px 18px 50px}
+
+  /* header grid = filters */
+  .grid{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--rule)}
+  .grid button{font:inherit;font-weight:300;background:none;color:var(--fg);border:0;text-align:left;cursor:pointer;
+    font-size:clamp(28px,6vw,58px);letter-spacing:.04em;padding:4px 14px 2px;line-height:1.1;text-transform:uppercase}
+  .grid button:nth-child(odd){border-right:1px solid var(--rule)}
+  .grid button:nth-child(-n+2){border-bottom:1px solid var(--rule)}
+  .grid button:hover{background:#151515}
+  .grid button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+
+  /* dotted stats box */
+  .stats{margin:22px 0 6px;border:1px dashed var(--dim);padding:10px 12px;display:grid;
+    grid-template-columns:repeat(4,1fr);gap:14px;font-size:13px}
+  .stats div span{display:block;color:var(--dim);text-transform:uppercase;border-bottom:1px dashed var(--rule);padding-bottom:4px;margin-bottom:5px;letter-spacing:.03em}
+  .stats div b{font-weight:400;color:var(--hi)}
+  .stats a{color:var(--hi);text-decoration:none}
+
+  .meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;color:var(--dim);font-size:12.5px;margin:14px 0 4px}
+  .meta button{font:inherit;color:var(--fg);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+
+  section{margin-top:30px}
+  section.hidden{display:none}
+  h2{font-weight:500;font-size:20px;letter-spacing:.06em;margin:0 0 8px;text-transform:uppercase}
+  h2 small{font-size:12.5px;font-weight:400;color:var(--dim);letter-spacing:0;margin-left:10px;text-transform:none}
+
+  .board{border-top:1px solid var(--rule)}
+  .r{display:grid;grid-template-columns:130px minmax(0,1.5fr) minmax(0,1fr) 120px;gap:18px;align-items:baseline;
+    padding:7px 4px 6px;border-bottom:1px solid var(--rule);text-transform:uppercase;letter-spacing:.06em}
+  .r .d{color:var(--fg);font-variant-numeric:tabular-nums}
+  .r .w a{color:var(--hi);text-decoration:none;font-size:17px}
+  .r .w a:hover{text-decoration:underline;text-underline-offset:4px}
+  .r .w .n{display:block;text-transform:none;letter-spacing:0;color:var(--dim);font-size:12.5px;margin-top:2px}
+  .r .v{color:var(--fg)}
+  .r .s{text-align:right;white-space:nowrap}
+  .tg{display:inline-block;font-size:11px;font-weight:500;letter-spacing:.06em;padding:0 5px;margin-right:5px;
+    color:#0a0a0a;line-height:1.5;vertical-align:1px;text-transform:uppercase}
+  .tg.free{background:#55ff55}.tg.sold{background:#ff5555}.tg.tbc{background:#ff55ff}
+  .tg.r18{background:#ffff55}.tg.sport{background:#55ffff}.tg.soon{background:#ffffff}
+  .r .tags{display:block;margin-top:4px}
+  .s.free{color:#55ff55}.s.sold{color:#ff5555}.s.tbc{color:#ff55ff}.s.ok{color:var(--fg)}
+  .s.soon{background:#fff;color:#0a0a0a;padding:0 5px;justify-self:end}
+  .search{display:flex;align-items:center;gap:10px;margin:18px 0 0;border:1px solid var(--rule);padding:8px 12px}
+  .search label{color:var(--dim);font-size:13px;letter-spacing:.06em}
+  .search input{flex:1;min-width:0;background:none;border:0;outline:none;color:var(--hi);font:inherit;font-size:18px;
+    letter-spacing:.06em;text-transform:uppercase;caret-color:var(--hi)}
+  .search input::placeholder{color:#555;text-transform:uppercase}
+  .search:focus-within{border-color:var(--fg)}
+  .search .hits{color:var(--dim);font-size:12.5px;white-space:nowrap}
+  .search button{font:inherit;font-size:12.5px;background:none;border:0;color:var(--fg);cursor:pointer;padding:0;text-decoration:underline}
+  .r.nomatch,section.empty{display:none}
+  .none{display:none;margin-top:30px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+  .legend{display:flex;flex-wrap:wrap;gap:4px 2px;align-items:center;margin:14px 0 0;font-size:12px;color:var(--dim)}
+  .legend .tg{margin-right:2px}
+  .legend em{font-style:normal;margin-right:12px}
+  .r.past{opacity:.3}
+  .hidepast .r.past{display:none}
+
+  footer{margin-top:40px;color:var(--dim);font-size:12px;line-height:1.6}
+  @media (max-width:760px){
+    .stats{grid-template-columns:1fr 1fr}
+    .r{grid-template-columns:72px minmax(0,1fr) auto;gap:10px}
+    .r .v{grid-column:2;grid-row:2;color:var(--dim);font-size:12.5px}
+    .r .s{grid-column:3;grid-row:1}
+    .r .d{font-size:13px}
+    .r .w a{font-size:15px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="grid" role="group" aria-label="Filter">
+  <button data-f="all" aria-pressed="true">All</button>
+  <button data-f="family" aria-pressed="false">Family</button>
+  <button data-f="adult" aria-pressed="false">Adults</button>
+  <button data-f="away" aria-pressed="false">Beyond</button>
+</div>
+
+<div class="search">
+  <label for="q">SEARCH &gt;</label>
+  <input id="q" type="search" placeholder="foo fighters, hagley, free, march..." autocomplete="off" spellcheck="false">
+  <span class="hits" id="hits"></span>
+  <button id="clear" hidden>CLEAR</button>
+</div>
+
+<div class="stats" id="stats"></div>
+
+<div class="legend">
+  <span class="tg free">FREE</span><em>no ticket</em>
+  <span class="tg sold">SOLD OUT</span><em>resale only</em>
+  <span class="tg tbc">TBC</span><em>annual, date not set</em>
+  <span class="tg r18">R18</span><em>adults only</em>
+  <span class="tg sport">SPORT</span><em>match / race</em>
+  <span class="tg soon">THIS WEEK</span><em>next 7 days</em>
+</div>
+<div class="meta">
+  <span>CHRISTCHURCH / CANTERBURY · UPDATED 18 NOV 2026 · CHECK LINKS BEFORE YOU GO</span>
+  <button id="past">HIDE DEPARTED</button>
+</div>
+
+<section data-sec="family"><h2>Family &amp; Kids<small>All ages</small></h2><div class="board" id="family"></div></section>
+<section data-sec="adult"><h2>Adults<small>Gigs, shows, festivals</small></h2><div class="board" id="adult"></div></section>
+<section data-sec="away"><h2>Beyond Canterbury<small>Worth the trip</small></h2><div class="board" id="away"></div></section>
+
+<p class="none" id="none">NO MATCHES. TRY A SHORTER WORD.</p>
+
+<footer>
+Every event name links to its listing or ticket page.
+</footer>
+</div>
+
+<script>
+const EVENTS = [
+/* ---------- FAMILY ---------- */
+{c:"family",d:"2026-11-22",when:"Sun 22 Nov",what:"Messy Magic Adventure",url:"https://isaactheatreroyal.co.nz/",where:"Isaac Theatre Royal",note:"Kids' show"},
+{c:"family",d:"2026-11-27",e:"2026-12-01",when:"27 Nov – 1 Dec",what:"BLACKCAPS v India · Test",url:"https://hagleyoval.co.nz/?p=9335",where:"Hagley Oval",note:"11am daily",tags:["sport"]},
+{c:"family",d:"2026-11-28",when:"Sat 28 Nov · 7:30pm",what:"Coca-Cola Christmas in the Park",url:"https://www.coca-cola.com/nz/en/offerings/christmas-in-the-park",where:"North Hagley Park",note:"Picnic + fireworks",tags:["free"]},
+{c:"family",d:"2026-11-29",when:"Sun 29 Nov",what:"TAYLOR: A Tribute to the Eras",url:"https://isaactheatreroyal.co.nz/",where:"Isaac Theatre Royal",note:"Swiftie tribute show"},
+{c:"family",d:"2026-12-05",e:"2026-12-06",when:"5–6 Dec",what:"Christmas Show Parade",url:"https://form.jotform.com/260466550823862",where:"Canterbury A&P Showgrounds",note:"Santa parade Sun 2pm; rides, market"},
+{c:"family",d:"2026-12-07",when:"Mon 7 Dec · lunch",what:"Symposium Dectet: Christmas jazz",url:"https://ccc.govt.nz/news-and-events/whats-on/event/great-hall-lunchtime-concert-series-2026-symposium-dectet",where:"Arts Centre Great Hall",note:"Lunchtime concert"},
+{c:"family",d:"2026-12-11",when:"Fri 11 Dec",what:"Hanmer Springs Christmas Parade",url:"https://hanmerholidayhomes.co.nz/events",where:"Hanmer Springs",note:""},
+{c:"family",d:"2026-12-12",when:"Sat 12 Dec",what:"A Very CSO Christmas",url:"https://ccc.govt.nz/news-and-events/whats-on/event/cso-and-rova-present-a-very-cso-christmas",where:"Christchurch Town Hall",note:"Christchurch Symphony Orchestra"},
+{c:"family",d:"2026-12-12",when:"Mid Dec (Sat)",what:"New Brighton Seaside Christmas Parade",url:"https://ccc.govt.nz/news-and-events/whats-on/event/new-brighton-seaside-christmas-parade",where:"New Brighton",note:"Santa arrives by surf boat",tags:["free","tbc"]},
+{c:"family",d:"2026-12-31",when:"Thu 31 Dec · 4–7pm",what:"NYE Kids' Countdown",url:"https://www.christchurchnz.com/visit/whats-on/new-years-eve",where:"North Hagley Park",note:"Ages 4–12, 7pm countdown",tags:["free","tbc"]},
+{c:"family",d:"2027-01-10",when:"Jan 2027",what:"Anthony Harper Summer Theatre",url:"https://ccc.govt.nz/news-and-events/whats-on",where:"Botanic Gardens",note:"Outdoor play",tags:["free","tbc"]},
+{c:"family",d:"2027-01-21",e:"2027-01-31",when:"21–31 Jan",what:"World Buskers Festival",url:"https://www.christchurchnz.com/visit/whats-on/world-buskers-festival",where:"Central city",note:"Street shows, circus, comedy",tags:["free"]},
+{c:"family",d:"2027-01-24",when:"Sun 24 Jan · 6pm",what:"BLACKCAPS v Sri Lanka · T20",url:"https://hagleyoval.co.nz/?p=9335",where:"Hagley Oval",note:"",tags:["sport"]},
+{c:"family",d:"2027-01-30",when:"Late Jan / Feb",what:"Kite Day",url:"https://ccc.govt.nz/news-and-events/whats-on",where:"New Brighton Beach",note:"Bring a kite",tags:["free","tbc"]},
+{c:"family",d:"2027-02-12",when:"Fri 12 Feb · 7:35pm",what:"Crusaders v Reds · season opener",url:"https://www.rugbypass.com/news/every-new-zealand-teams-season-schedule-for-super-rugby-pacific-2027/",where:"One NZ Stadium",note:"Also home 19 Feb, 6 Mar, 12 Mar",tags:["sport"]},
+{c:"family",d:"2027-02-13",when:"Feb 2027",what:"Mitre10 Sparks",url:"https://www.christchurchnz.com/visit/whats-on/mitre10-sparks",where:"North Hagley Park",note:"CSO + big fireworks",tags:["free","tbc"]},
+{c:"family",d:"2027-04-02",e:"2027-04-04",when:"2–4 Apr",what:"Super Rugby Super Round",url:"https://www.crusaders.co.nz/latest/news/super-round-returns-to-otautahi-christchurch-in-2027/",where:"One NZ Stadium",note:"All 10 teams, 5 games",tags:["sport"]},
+{c:"family",d:"2027-06-01",when:"2027",what:"Supercars Christchurch",url:"https://travel.supercars.com/2027-christchurch",where:"Christchurch",note:"Date not announced",tags:["sport","tbc"]},
+
+/* ---------- ADULT ---------- */
+{c:"adult",d:"2026-11-21",when:"Sat 21 Nov",what:"Rise Against + Dropkick Murphys",url:"https://www.rova.nz/events/rise-against-2026",where:"Wolfbrook Arena",note:"Punk double bill"},
+{c:"adult",d:"2026-11-22",when:"Sun 22 Nov",what:"Jack Johnson + Ben Harper + John Butler",url:"https://www.livenation.co.nz/show/1670946/jack-johnson-surfilmusic-tour/north%20canterbury/2026-11-22/en",where:"Waipara Winehouse",note:"",tags:["sold"]},
+{c:"adult",d:"2026-11-28",when:"Sat 28 Nov",what:"Robbie Williams · BRITPOP tour",url:"https://www.rova.nz/events/robbie-williams--britpop-world-tour-new-zealand",where:"One NZ Stadium",note:"w/ Drax Project"},
+{c:"adult",d:"2026-12-02",e:"2026-12-06",when:"2–6 Dec",what:"Jesus Christ Superstar",url:"https://isaactheatreroyal.co.nz/jesuschristsuperstar",where:"Isaac Theatre Royal",note:"Touring West End production"},
+{c:"adult",d:"2026-12-05",when:"Sat 5 Dec",what:"South Island Wine & Food Festival",url:"https://www.scenichotelgroup.co.nz/christchurch/whats-on-christchurch/",where:"North Hagley Park",note:"",tags:["r18"]},
+{c:"adult",d:"2026-12-10",when:"Thu 10 Dec",what:"Adam Kay",url:"https://www.stereoboard.com/venues/christchurch/isaac-theatre",where:"Isaac Theatre Royal",note:"Comedy / talk"},
+{c:"adult",d:"2026-12-11",when:"Fri 11 Dec · 7pm",what:"Urzila Carlson: Fatty On A Yacht",url:"https://happeningnext.com/event/jesus-christ-superstar-eid3a0djogodj",where:"Christchurch Town Hall",note:"Comedy"},
+{c:"adult",d:"2026-12-12",e:"2026-12-15",when:"12 & 15 Dec",what:"An Evening with Guenther Steiner",url:"https://isaactheatreroyal.co.nz/",where:"Isaac Theatre Royal",note:"F1 talk"},
+{c:"adult",d:"2026-12-28",when:"Mon 28 Dec · 12:30pm",what:"Lakes Festival",url:"https://www.rova.nz/events/lakes-festival-2026",where:"North Hagley Park",note:"Armand Van Helden, Netsky, Mall Grab",tags:["r18"]},
+{c:"adult",d:"2026-12-31",when:"Thu 31 Dec · 8pm–12",what:"NYE party + midnight fireworks",url:"https://www.christchurchnz.com/visit/whats-on/new-years-eve",where:"North Hagley Park",note:"Best for 15+",tags:["free","tbc"]},
+{c:"adult",d:"2027-01-19",when:"Tue 19 Jan",what:"Foo Fighters",url:"https://www.chrislynchmedia.com/?p=47352",where:"One NZ Stadium",note:"Under the roof"},
+{c:"adult",d:"2027-01-23",when:"Sat 23 Jan",what:"Joe Jackson",url:"https://tickets.songkick.com/metro-areas/31443-new-zealand-christchurch/2027",where:"Christchurch Town Hall",note:""},
+{c:"adult",d:"2027-01-30",when:"Sat 30 Jan",what:"Great Kiwi Beer Festival",url:"https://www.rova.nz/events/the-great-kiwi-beer-festival-2027",where:"Hagley Park",note:"300+ beers, live music",tags:["r18"]},
+{c:"adult",d:"2027-02-06",when:"Feb 2027",what:"Nostalgia Festival",url:"https://setlineapp.com/festivals/nostalgia-festival-2027",where:"Ferrymead Heritage Park",note:"Music in a 1900s township",tags:["tbc"]},
+{c:"adult",d:"2027-02-26",e:"2027-02-27",when:"26–27 Feb",what:"Electric Avenue",url:"https://www.rova.nz/events/electric-avenue-2027",where:"Hagley Park",note:"Kings of Leon, Calvin Harris, Kasabian, Underworld",tags:["sold","r18"]},
+{c:"adult",d:"2027-03-01",when:"Mon 1 Mar",what:"Simple Minds + Gary Numan",url:"https://www.eventworld.com/christchurch/concerts/pop",where:"Wolfbrook Arena",note:""},
+{c:"adult",d:"2027-03-12",when:"Fri 12 Mar",what:"Bryan Adams + Natalie Imbruglia",url:"https://www.rova.nz/events/bryan-adams-announces-roll-with-the-punches-tour-to-new-zealand-2027",where:"Wolfbrook Arena",note:""},
+{c:"adult",d:"2027-03-12",e:"2027-03-14",when:"12–14 Mar",what:"DramFest (whisky festival)",url:"https://events.humanitix.com/dramfest-2027",where:"Te Pae",note:"10th anniversary",tags:["r18"]},
+{c:"adult",d:"2027-03-13",when:"Sat 13 Mar",what:"North Canterbury Wine & Food Festival",url:"https://hanmerholidayhomes.co.nz/events",where:"Glenmark Domain, Waipara",note:"Under the oaks"},
+{c:"adult",d:"2027-03-16",when:"Tue 16 Mar",what:"Ronan Keating",url:"https://www.eventworld.com/ronan-keating-christchurch-tickets-16-03-2027/event/565854",where:"Wolfbrook Arena",note:""},
+{c:"adult",d:"2027-07-30",when:"Fri 30 Jul",what:"Westlife",url:"https://www.eventworld.com/westlife-christchurch-tickets-30-07-2027/event/408222",where:"Wolfbrook Arena",note:""},
+
+/* ---------- BEYOND ---------- */
+{c:"away",d:"2027-01-30",e:"2027-01-31",when:"30–31 Jan",what:"Summer Concert Tour: Seal + Bastille",url:"https://www.1news.co.nz/2026/09/25/seal-bastille-to-headline-greenstone-summer-concert-2027/",where:"Wānaka (30th) · Taupō (31st)",note:"Seal's first NZ visit"},
+{c:"away",d:"2027-03-13",e:"2027-03-16",when:"13, 14 & 16 Mar",what:"Bruno Mars · The Romantic Tour",url:"https://www.1news.co.nz/2026/09/03/bruno-mars-adds-third-auckland-show/",where:"Eden Park, Auckland",note:"Only NZ dates; w/ Tyla"},
+{c:"away",d:"2027-06-24",e:"2027-07-25",when:"24 Jun – 25 Jul",what:"FIFA Women's World Cup",url:"https://inside.fifa.com/media-releases/fifa-womens-world-cup-brazil-2027-dates-confirmed",where:"Brazil",note:"Football Ferns have qualified",tags:["sport"]},
+{c:"away",d:"2027-07-10",e:"2027-07-18",when:"10–18 Jul",what:"America's Cup Match",url:"https://www.boatingnz.co.nz/2026/01/louis-vuitton-38th-americas-cup-partnership-launched-in-naples/",where:"Naples, Italy",note:"Team NZ defending",tags:["sport"]},
+{c:"away",d:"2027-10-01",e:"2027-11-13",when:"1 Oct – 13 Nov",what:"Rugby World Cup",url:"https://www.allblacks.com/news/all-blacks-rugby-world-cup-2027-campaign-to-kick-off-against-chile",where:"Australia",note:"ABs v Chile 2 Oct (Perth), v Wallabies 9 Oct (Sydney), v Hong Kong 15 Oct (Melb)",tags:["sport"]}
+];
+
+const today=new Date(); today.setHours(0,0,0,0);
+const week=new Date(today); week.setDate(week.getDate()+7);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const MON=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+const start=e=>new Date(e.d+"T00:00:00"), end=e=>new Date((e.e||e.d)+"T23:59:59");
+const fmt=dt=>String(dt.getDate()).padStart(2,"0")+" "+MON[dt.getMonth()];
+function dateCol(e){
+  const t=e.tags||[];
+  if(t.includes("tbc")) return e.when.replace(/\s*\(.*\)/,"").split("·")[0].trim().toUpperCase();
+  const a=start(e), b=e.e?new Date(e.e+"T00:00:00"):null;
+  if(!b) return fmt(a);
+  return a.getMonth()===b.getMonth() ? String(a.getDate()).padStart(2,"0")+"–"+fmt(b) : fmt(a)+"–"+fmt(b);
+}
+function status(e){
+  const t=e.tags||[];
+  if(end(e)<today) return ["past","DEPARTED"];
+  if(t.includes("sold")) return ["sold","SOLD OUT"];
+  if(t.includes("tbc")) return ["tbc","TBC"];
+  if(start(e)<=week) return ["soon","THIS WEEK"];
+  if(t.includes("free")) return ["free","FREE"];
+  return ["ok","ON SALE"];
+}
+const timeOf=e=>{const m=e.when.match(/·\s*(.+)$/);return m?m[1]:""};
+
+["family","adult","away"].forEach(cat=>{
+  document.getElementById(cat).innerHTML=EVENTS.filter(e=>e.c===cat).sort((a,b)=>a.d.localeCompare(b.d)).map(e=>{
+    const [cls,label]=status(e);
+    const extra=[timeOf(e),e.note].filter(Boolean).join(" · ");
+    const L={free:"FREE",sold:"SOLD OUT",tbc:"TBC",r18:"R18",sport:"SPORT"};
+    const tl=(e.tags||[]).map(t=>`<span class="tg ${t}">${L[t]}</span>`);
+    if(cls==="soon") tl.unshift(`<span class="tg soon">THIS WEEK</span>`);
+    return `<div class="r c-${cls}${cls==="past"?" past":""}" data-i="${EVENTS.indexOf(e)}">
+      <div class="d">${esc(dateCol(e))}</div>
+      <div class="w"><a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.what)}</a>${extra?`<span class="n">${esc(extra)}</span>`:""}${tl.length&&cls!=="past"?`<span class="tags">${tl.join("")}</span>`:""}</div>
+      <div class="v">${esc(e.where)}</div>
+      <div class="s ${cls}">${label}</div></div>`;
+  }).join("");
+});
+
+const up=EVENTS.filter(e=>end(e)>=today);
+const local=up.filter(e=>e.c!=="away").sort((a,b)=>a.d.localeCompare(b.d));
+const next=local[0];
+const wk=local.filter(e=>start(e)<=week).length;
+const free=up.filter(e=>(e.tags||[]).includes("free")).length;
+document.getElementById("stats").innerHTML=`
+  <div><span>Upcoming</span><b>${up.length}</b></div>
+  <div><span>Next 7 days</span><b>${wk}</b></div>
+  <div><span>Free events</span><b>${free}</b></div>
+  <div><span>Next up</span><b>${next?`<a href="${esc(next.url)}" target="_blank" rel="noopener">${esc(next.what.toUpperCase())}</a>`:"—"}</b></div>`;
+
+let filter="all";
+function setFilter(f){
+  filter=f;
+  document.querySelectorAll(".grid button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.f===f)));
+  document.querySelectorAll("section").forEach(s=>s.classList.toggle("hidden",f!=="all"&&s.dataset.sec!==f));
+  runSearch();
+}
+
+/* ---- fuzzy search ---- */
+const MONTHS=["january","february","march","april","may","june","july","august","september","october","november","december"];
+const norm=t=>t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9 ]+/g," ");
+const HAY=EVENTS.map(e=>{
+  const m=MONTHS[new Date(e.d+"T00:00:00").getMonth()];
+  const cat={family:"family kids all ages",adult:"adults night out",away:"beyond away overseas trip"}[e.c];
+  const kw=/crusaders|super rugby|rugby world/i.test(e.what)?"rugby":/blackcaps/i.test(e.what)?"cricket":/supercars/i.test(e.what)?"motorsport cars racing":/america/i.test(e.what)?"sailing yachting":/world cup/i.test(e.what)?"football soccer":/parade|christmas|nye|sparks/i.test(e.what)?"christmas festive":"";
+  const text=norm([kw,e.what,e.where,e.note,e.when,(e.tags||[]).join(" "),(e.tags||[]).includes("sold")?"sold out":"",m,cat].join(" "));
+  return {text,words:text.split(/\s+/).filter(Boolean)};
+});
+function osa(a,b){ // optimal string alignment distance (handles swapped letters)
+  const m=a.length,n=b.length,d=[];
+  for(let i=0;i<=m;i++){d[i]=[i];}
+  for(let j=0;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){
+    const c=a[i-1]===b[j-1]?0:1;
+    d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+c);
+    if(i>1&&j>1&&a[i-1]===b[j-2]&&a[i-2]===b[j-1])d[i][j]=Math.min(d[i][j],d[i-2][j-2]+1);
+  }
+  return d[m][n];
+}
+function subseq(q,w){let i=0;for(const c of w){if(c===q[i])i++;if(i===q.length)return true}return false}
+function tokenHits(tok,h){
+  if(h.text.includes(tok)) return true;
+  const max=tok.length>=7?2:tok.length>=4?1:0;
+  return h.words.some(w=>(tok.length>=3&&w[0]===tok[0]&&subseq(tok,w)&&w.length<=tok.length*2) ||
+                         (max&&(osa(tok,w)<=max||osa(tok,w.slice(0,tok.length))<=max)));
+}
+const qEl=document.getElementById("q"), hitsEl=document.getElementById("hits"), clr=document.getElementById("clear");
+function runSearch(){
+  const toks=norm(qEl.value).split(/\s+/).filter(Boolean);
+  let shown=0;
+  document.querySelectorAll(".r[data-i]").forEach(r=>{
+    const ok=!toks.length||toks.every(t=>tokenHits(t,HAY[+r.dataset.i]));
+    r.classList.toggle("nomatch",!ok);
+  });
+  document.querySelectorAll("section").forEach(sec=>{
+    const vis=[...sec.querySelectorAll(".r[data-i]")].filter(r=>!r.classList.contains("nomatch")&&!(document.body.classList.contains("hidepast")&&r.classList.contains("past"))).length;
+    sec.classList.toggle("empty",toks.length>0&&vis===0);
+    if(filter==="all"||sec.dataset.sec===filter) shown+=vis;
+  });
+  hitsEl.textContent=toks.length?shown+" FOUND":"";
+  clr.hidden=!toks.length;
+  document.getElementById("none").style.display=toks.length&&!shown?"block":"none";
+}
+qEl.addEventListener("input",runSearch);
+clr.onclick=()=>{qEl.value="";runSearch();qEl.focus()};
+document.addEventListener("keydown",e=>{
+  if(e.key==="/"&&document.activeElement!==qEl){e.preventDefault();qEl.focus()}
+  if(e.key==="Escape"&&document.activeElement===qEl){qEl.value="";runSearch()}
+});
+document.querySelectorAll(".grid button").forEach(b=>b.onclick=()=>setFilter(b.dataset.f));
+const pb=document.getElementById("past");
+pb.onclick=()=>{const on=document.body.classList.toggle("hidepast");pb.textContent=on?"SHOW DEPARTED":"HIDE DEPARTED";runSearch();};
+</script>
+</body>
+</html>
