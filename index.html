@@ -11,10 +11,10 @@
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--fg);font-family:"IBM Plex Mono",ui-monospace,monospace;
     font-size:15px;line-height:1.35;-webkit-font-smoothing:antialiased}
-  .app{max-width:1320px;margin:0 auto;padding:28px 18px 50px;display:grid;grid-template-columns:190px minmax(0,1fr);gap:88px}
+  .app{max-width:1520px;margin:0;padding:28px 28px 50px 20px;display:grid;grid-template-columns:180px minmax(0,1fr);gap:96px}
 
   /* sidebar */
-  aside{position:sticky;top:28px;align-self:start}
+  aside{position:sticky;top:28px;align-self:start;margin-top:var(--list-top,76px)}
   aside ul{list-style:none;margin:0;padding:0}
   aside li{margin:0}
   aside button{font:inherit;font-size:15px;font-weight:300;letter-spacing:.08em;text-transform:uppercase;width:100%;
@@ -42,13 +42,16 @@
   .fv .fx .unfav{all:unset;cursor:pointer;color:#ff5555;margin-left:10px}
 
   /* search: just a block cursor */
-  .search{position:relative;padding:9px 12px;height:46px;cursor:text;overflow:hidden}
-  .search input{position:absolute;inset:0;width:100%;padding:9px 12px;background:none;border:0;outline:none;
+  .search{position:relative;padding:9px 0;height:46px;cursor:text;overflow:hidden}
+  .search input{position:absolute;inset:0;width:100%;padding:9px 0;background:none;border:0;outline:none;
     color:var(--hi);font:inherit;font-size:20px;letter-spacing:.06em;text-transform:uppercase;caret-color:transparent}
-  .search .mirror{position:absolute;visibility:hidden;white-space:pre;font-size:20px;letter-spacing:.06em;text-transform:uppercase;left:12px;top:9px}
-  .search .cur{position:absolute;top:11px;left:12px;width:.62em;height:24px;background:var(--hi);font-size:20px;animation:blink 1.06s steps(1) infinite;pointer-events:none}
+  .search .mirror{position:absolute;visibility:hidden;white-space:pre;font-size:20px;letter-spacing:.06em;text-transform:uppercase;left:0;top:9px}
+  .search .cur{display:none;position:absolute;top:11px;left:0;width:.62em;height:24px;background:var(--hi);font-size:20px;animation:blink 1.06s steps(1) infinite;pointer-events:none}
   @keyframes blink{50%{opacity:0}}
   .search input::-webkit-search-cancel-button{display:none}
+  .search:focus-within .cur{display:block}
+  .search input::placeholder{color:#5f5f5c;text-transform:none;letter-spacing:.04em;opacity:1}
+  .search:focus-within input::placeholder{color:transparent}
 
 
   section{margin-top:30px}
@@ -96,7 +99,7 @@
 
   @media (max-width:820px){
     .app{grid-template-columns:1fr;gap:16px;padding-top:16px}
-    aside{position:static}
+    aside{position:static;margin-top:0}
     aside ul{display:grid;grid-template-columns:repeat(4,1fr)}
     aside button{font-size:14px;justify-content:center;padding:7px 2px} aside button span{display:none}
     aside .more{margin:8px 8px 0}
@@ -130,7 +133,7 @@
 
 <main>
   <div class="search" id="sbox">
-    <input id="q" type="text" aria-label="Filter events" autocomplete="off" spellcheck="false" autofocus>
+    <input id="q" type="text" aria-label="Filter events" autocomplete="off" spellcheck="false" placeholder="Search">
     <span class="mirror" id="mirror"></span>
     <span class="cur" id="cur"></span>
   </div>
@@ -409,8 +412,8 @@ function tokenHits(tok,h){
 const qEl=document.getElementById("q"),mirror=document.getElementById("mirror"),cur=document.getElementById("cur");
 function placeCursor(){
   mirror.textContent=qEl.value;
-  const w=mirror.getBoundingClientRect().width, box=qEl.clientWidth-24;
-  cur.style.left=(12+Math.min(w,box))+"px";
+  const w=mirror.getBoundingClientRect().width, box=qEl.clientWidth-14;
+  cur.style.left=Math.min(w,box)+"px";
   cur.style.animation="none"; void cur.offsetWidth; cur.style.animation="";
 }
 function wordHit(tok,w){
@@ -468,6 +471,16 @@ renderBoards();
 document.fonts&&document.fonts.ready.then(placeCursor); placeCursor();
 
 binLoad();
+function alignSidebar(){
+  if(matchMedia("(max-width:820px)").matches){document.documentElement.style.removeProperty("--list-top");return;}
+  const main=document.querySelector("main"), h=[...document.querySelectorAll("section:not(.hidden):not(.empty) h2")][0];
+  if(!h) return;
+  const btn=document.querySelector("aside button[data-f]");
+  const offset=h.getBoundingClientRect().top-main.getBoundingClientRect().top;
+  const pad=btn?parseFloat(getComputedStyle(btn).paddingTop):0;
+  document.documentElement.style.setProperty("--list-top",Math.max(0,offset)+"px");
+}
+alignSidebar(); addEventListener("resize",alignSidebar); document.fonts&&document.fonts.ready.then(alignSidebar);
 </script>
 </body>
 </html>
