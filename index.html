@@ -56,6 +56,9 @@
   .tg{display:inline-block;font-size:11px;font-weight:500;letter-spacing:.06em;padding:0 5px;margin-right:5px;color:#0a0a0a;line-height:1.5;vertical-align:1px}
   .tg.free{background:#55ff55}.tg.sold{background:#ff5555}.tg.tbc{background:#ff55ff}.tg.soon{background:#fff}
   .r .tags{display:block;margin-top:4px}
+  .r .kw .hk{all:unset;cursor:pointer}
+  .r .kw .hk:hover{color:var(--hi)}
+  .r .kw{display:block;margin-top:4px;text-transform:none;letter-spacing:.02em;color:#5f5f5c;font-size:11.5px}
   .s.free{color:#55ff55}.s.sold{color:#ff5555}.s.tbc{color:#ff55ff}
   .s.soon{background:#fff;color:#0a0a0a;padding:0 5px;justify-self:end}
 
@@ -126,55 +129,55 @@
 <script>
 const EVENTS = [
 /* ---------- FAMILY ---------- */
-{t:"",c:"family",d:"2026-11-22",when:"Sun 22 Nov",what:"Messy Magic Adventure",url:"https://isaactheatreroyal.co.nz/",where:"Isaac Theatre Royal",note:"Kids' show"},
-{t:"11:00 daily",c:"family",d:"2026-11-27",e:"2026-12-01",when:"27 Nov – 1 Dec",what:"BLACKCAPS v India · Test",url:"https://hagleyoval.co.nz/?p=9335",where:"Hagley Oval",note:""},
-{t:"19:30",c:"family",d:"2026-11-28",when:"Sat 28 Nov · 7:30pm",what:"Coca-Cola Christmas in the Park",url:"https://www.coca-cola.com/nz/en/offerings/christmas-in-the-park",where:"North Hagley Park",note:"Picnic + fireworks",tags:["free"]},
-{t:"",c:"family",d:"2026-11-29",when:"Sun 29 Nov",what:"TAYLOR: A Tribute to the Eras",url:"https://isaactheatreroyal.co.nz/",where:"Isaac Theatre Royal",note:"Swiftie tribute show"},
-{t:"11:00–16:30 · parade Sun 14:00",c:"family",d:"2026-12-05",e:"2026-12-06",when:"5–6 Dec",what:"Christmas Show Parade",url:"https://form.jotform.com/260466550823862",where:"Canterbury A&P Showgrounds",note:"Rides, market, Santa"},
-{t:"Lunchtime",c:"family",d:"2026-12-07",when:"Mon 7 Dec · lunch",what:"Symposium Dectet: Christmas jazz",url:"https://ccc.govt.nz/news-and-events/whats-on/event/great-hall-lunchtime-concert-series-2026-symposium-dectet",where:"Arts Centre Great Hall",note:"Arts Centre lunchtime series"},
-{t:"",c:"family",d:"2026-12-11",when:"Fri 11 Dec",what:"Hanmer Springs Christmas Parade",url:"https://hanmerholidayhomes.co.nz/events",where:"Hanmer Springs",note:""},
-{t:"18:30–20:30",c:"family",d:"2026-12-12",when:"Sat 12 Dec",what:"A Very CSO Christmas",url:"https://ccc.govt.nz/news-and-events/whats-on/event/cso-and-rova-present-a-very-cso-christmas",where:"Christchurch Town Hall",note:"Christchurch Symphony Orchestra"},
-{t:"10:00–14:00",c:"family",d:"2026-12-12",when:"Mid Dec (Sat)",what:"New Brighton Seaside Christmas Parade",url:"https://ccc.govt.nz/news-and-events/whats-on/event/new-brighton-seaside-christmas-parade",where:"New Brighton",note:"Santa arrives by surf boat",tags:["free","tbc"]},
-{t:"16:00–19:00",c:"family",d:"2026-12-31",when:"Thu 31 Dec · 4–7pm",what:"NYE Kids' Countdown",url:"https://www.christchurchnz.com/visit/whats-on/new-years-eve",where:"North Hagley Park",note:"Ages 4–12",tags:["free","tbc"]},
-{t:"19:00 · wknd 16:00",c:"family",d:"2027-01-10",when:"Jan 2027",what:"Anthony Harper Summer Theatre",url:"https://ccc.govt.nz/news-and-events/whats-on",where:"Botanic Gardens",note:"Outdoor play",tags:["free","tbc"]},
-{t:"All day",c:"family",d:"2027-01-21",e:"2027-01-31",when:"21–31 Jan",what:"World Buskers Festival",url:"https://www.christchurchnz.com/visit/whats-on/world-buskers-festival",where:"Central city",note:"Street shows, circus, comedy",tags:["free"]},
-{t:"18:00",c:"family",d:"2027-01-24",when:"Sun 24 Jan · 6pm",what:"BLACKCAPS v Sri Lanka · T20",url:"https://hagleyoval.co.nz/?p=9335",where:"Hagley Oval",note:""},
-{t:"12:00–16:00",c:"family",d:"2027-01-30",when:"Late Jan / Feb",what:"Kite Day",url:"https://ccc.govt.nz/news-and-events/whats-on",where:"New Brighton Beach",note:"Bring a kite",tags:["free","tbc"]},
-{t:"19:35",c:"family",d:"2027-02-12",when:"Fri 12 Feb · 7:35pm",what:"Crusaders v Reds · season opener",url:"https://www.rugbypass.com/news/every-new-zealand-teams-season-schedule-for-super-rugby-pacific-2027/",where:"One NZ Stadium",note:"Also home 19 Feb, 6 Mar, 12 Mar"},
-{t:"18:30–21:40",c:"family",d:"2027-02-13",when:"Feb 2027",what:"Mitre10 Sparks",url:"https://www.christchurchnz.com/visit/whats-on/mitre10-sparks",where:"North Hagley Park",note:"CSO + big fireworks",tags:["free","tbc"]},
-{t:"Fri night opener",c:"family",d:"2027-04-02",e:"2027-04-04",when:"2–4 Apr",what:"Super Rugby Super Round",url:"https://www.crusaders.co.nz/latest/news/super-round-returns-to-otautahi-christchurch-in-2027/",where:"One NZ Stadium",note:"All 10 teams, 5 games"},
-{t:"",c:"family",d:"2027-06-01",when:"2027",what:"Supercars Christchurch",url:"https://travel.supercars.com/2027-christchurch",where:"Christchurch",note:"Date not announced",tags:["tbc"]},
+{k:["kids", "magic", "theatre", "show", "indoor"],t:"",c:"family",d:"2026-11-22",when:"Sun 22 Nov",what:"Messy Magic Adventure",url:"https://isaactheatreroyal.co.nz/",where:"Isaac Theatre Royal",note:"Kids' show"},
+{k:["sport", "cricket", "test", "international", "outdoor"],t:"11:00 daily",c:"family",d:"2026-11-27",e:"2026-12-01",when:"27 Nov – 1 Dec",what:"BLACKCAPS v India · Test",url:"https://hagleyoval.co.nz/?p=9335",where:"Hagley Oval",note:""},
+{k:["christmas", "concert", "music", "fireworks", "outdoor", "picnic"],t:"19:30",c:"family",d:"2026-11-28",when:"Sat 28 Nov · 7:30pm",what:"Coca-Cola Christmas in the Park",url:"https://www.coca-cola.com/nz/en/offerings/christmas-in-the-park",where:"North Hagley Park",note:"Picnic + fireworks",tags:["free"]},
+{k:["music", "concert", "tribute", "pop", "taylor-swift", "kids"],t:"",c:"family",d:"2026-11-29",when:"Sun 29 Nov",what:"TAYLOR: A Tribute to the Eras",url:"https://isaactheatreroyal.co.nz/",where:"Isaac Theatre Royal",note:"Swiftie tribute show"},
+{k:["christmas", "parade", "santa", "market", "rides", "outdoor"],t:"11:00–16:30 · parade Sun 14:00",c:"family",d:"2026-12-05",e:"2026-12-06",when:"5–6 Dec",what:"Christmas Show Parade",url:"https://form.jotform.com/260466550823862",where:"Canterbury A&P Showgrounds",note:"Rides, market, Santa"},
+{k:["music", "jazz", "christmas", "concert", "lunchtime", "indoor"],t:"Lunchtime",c:"family",d:"2026-12-07",when:"Mon 7 Dec · lunch",what:"Symposium Dectet: Christmas jazz",url:"https://ccc.govt.nz/news-and-events/whats-on/event/great-hall-lunchtime-concert-series-2026-symposium-dectet",where:"Arts Centre Great Hall",note:"Arts Centre lunchtime series"},
+{k:["christmas", "parade", "santa", "outdoor", "road-trip"],t:"",c:"family",d:"2026-12-11",when:"Fri 11 Dec",what:"Hanmer Springs Christmas Parade",url:"https://hanmerholidayhomes.co.nz/events",where:"Hanmer Springs",note:""},
+{k:["music", "classical", "orchestra", "christmas", "concert", "indoor"],t:"18:30–20:30",c:"family",d:"2026-12-12",when:"Sat 12 Dec",what:"A Very CSO Christmas",url:"https://ccc.govt.nz/news-and-events/whats-on/event/cso-and-rova-present-a-very-cso-christmas",where:"Christchurch Town Hall",note:"Christchurch Symphony Orchestra"},
+{k:["christmas", "parade", "santa", "beach", "outdoor"],t:"10:00–14:00",c:"family",d:"2026-12-12",when:"Mid Dec (Sat)",what:"New Brighton Seaside Christmas Parade",url:"https://ccc.govt.nz/news-and-events/whats-on/event/new-brighton-seaside-christmas-parade",where:"New Brighton",note:"Santa arrives by surf boat",tags:["free","tbc"]},
+{k:["new-year", "fireworks", "kids", "outdoor", "music"],t:"16:00–19:00",c:"family",d:"2026-12-31",when:"Thu 31 Dec · 4–7pm",what:"NYE Kids' Countdown",url:"https://www.christchurchnz.com/visit/whats-on/new-years-eve",where:"North Hagley Park",note:"Ages 4–12",tags:["free","tbc"]},
+{k:["theatre", "play", "outdoor", "picnic", "shakespeare"],t:"19:00 · wknd 16:00",c:"family",d:"2027-01-10",when:"Jan 2027",what:"Anthony Harper Summer Theatre",url:"https://ccc.govt.nz/news-and-events/whats-on",where:"Botanic Gardens",note:"Outdoor play",tags:["free","tbc"]},
+{k:["street-performance", "comedy", "circus", "outdoor", "festival"],t:"All day",c:"family",d:"2027-01-21",e:"2027-01-31",when:"21–31 Jan",what:"World Buskers Festival",url:"https://www.christchurchnz.com/visit/whats-on/world-buskers-festival",where:"Central city",note:"Street shows, circus, comedy",tags:["free"]},
+{k:["sport", "cricket", "t20", "international", "outdoor"],t:"18:00",c:"family",d:"2027-01-24",when:"Sun 24 Jan · 6pm",what:"BLACKCAPS v Sri Lanka · T20",url:"https://hagleyoval.co.nz/?p=9335",where:"Hagley Oval",note:""},
+{k:["kites", "beach", "outdoor", "kids"],t:"12:00–16:00",c:"family",d:"2027-01-30",when:"Late Jan / Feb",what:"Kite Day",url:"https://ccc.govt.nz/news-and-events/whats-on",where:"New Brighton Beach",note:"Bring a kite",tags:["free","tbc"]},
+{k:["sport", "rugby", "super-rugby", "stadium"],t:"19:35",c:"family",d:"2027-02-12",when:"Fri 12 Feb · 7:35pm",what:"Crusaders v Reds · season opener",url:"https://www.rugbypass.com/news/every-new-zealand-teams-season-schedule-for-super-rugby-pacific-2027/",where:"One NZ Stadium",note:"Also home 19 Feb, 6 Mar, 12 Mar"},
+{k:["music", "orchestra", "fireworks", "concert", "outdoor", "picnic"],t:"18:30–21:40",c:"family",d:"2027-02-13",when:"Feb 2027",what:"Mitre10 Sparks",url:"https://www.christchurchnz.com/visit/whats-on/mitre10-sparks",where:"North Hagley Park",note:"CSO + big fireworks",tags:["free","tbc"]},
+{k:["sport", "rugby", "super-rugby", "stadium"],t:"Fri night opener",c:"family",d:"2027-04-02",e:"2027-04-04",when:"2–4 Apr",what:"Super Rugby Super Round",url:"https://www.crusaders.co.nz/latest/news/super-round-returns-to-otautahi-christchurch-in-2027/",where:"One NZ Stadium",note:"All 10 teams, 5 games"},
+{k:["sport", "motorsport", "cars", "racing"],t:"",c:"family",d:"2027-06-01",when:"2027",what:"Supercars Christchurch",url:"https://travel.supercars.com/2027-christchurch",where:"Christchurch",note:"Date not announced",tags:["tbc"]},
 
 /* ---------- ADULT ---------- */
-{t:"",c:"adult",d:"2026-11-21",when:"Sat 21 Nov",what:"Courtney Barnett",url:"https://isaactheatreroyal.co.nz/",where:"Isaac Theatre Royal",note:"Creature of Habit tour"},
-{t:"20:00",c:"adult",d:"2026-11-21",when:"Sat 21 Nov",what:"Rise Against + Dropkick Murphys",url:"https://www.rova.nz/events/rise-against-2026",where:"Wolfbrook Arena",note:"Punk double bill"},
-{t:"14:30",c:"adult",d:"2026-11-22",when:"Sun 22 Nov",what:"Jack Johnson + Ben Harper + John Butler",url:"https://www.livenation.co.nz/show/1670946/jack-johnson-surfilmusic-tour/north%20canterbury/2026-11-22/en",where:"Waipara Winehouse",note:"",tags:["sold"]},
-{t:"18:00",c:"adult",d:"2026-11-28",when:"Sat 28 Nov",what:"Robbie Williams · BRITPOP tour",url:"https://www.rova.nz/events/robbie-williams--britpop-world-tour-new-zealand",where:"One NZ Stadium",note:"w/ Drax Project"},
-{t:"19:30 + matinees",c:"adult",d:"2026-12-02",e:"2026-12-06",when:"2–6 Dec",what:"Jesus Christ Superstar",url:"https://isaactheatreroyal.co.nz/jesuschristsuperstar",where:"Isaac Theatre Royal",note:"Touring West End production"},
-{t:"11:30–19:00",c:"adult",d:"2026-12-05",when:"Sat 5 Dec",what:"South Island Wine & Food Festival",url:"https://www.scenichotelgroup.co.nz/christchurch/whats-on-christchurch/",where:"North Hagley Park",note:""},
-{t:"",c:"adult",d:"2026-12-10",when:"Thu 10 Dec",what:"Adam Kay",url:"https://www.stereoboard.com/venues/christchurch/isaac-theatre",where:"Isaac Theatre Royal",note:"Comedy / talk"},
-{t:"19:00",c:"adult",d:"2026-12-11",when:"Fri 11 Dec · 7pm",what:"Urzila Carlson: Fatty On A Yacht",url:"https://happeningnext.com/event/jesus-christ-superstar-eid3a0djogodj",where:"Christchurch Town Hall",note:"Comedy"},
-{t:"",c:"adult",d:"2026-12-12",e:"2026-12-15",when:"12 & 15 Dec",what:"An Evening with Guenther Steiner",url:"https://isaactheatreroyal.co.nz/",where:"Isaac Theatre Royal",note:"F1 talk"},
-{t:"12:30–22:30",c:"adult",d:"2026-12-28",when:"Mon 28 Dec · 12:30pm",what:"Lakes Festival",url:"https://www.rova.nz/events/lakes-festival-2026",where:"North Hagley Park",note:"Armand Van Helden, Netsky, Mall Grab"},
-{t:"20:00–00:15",c:"adult",d:"2026-12-31",when:"Thu 31 Dec · 8pm–12",what:"NYE party + midnight fireworks",url:"https://www.christchurchnz.com/visit/whats-on/new-years-eve",where:"North Hagley Park",note:"Best for 15+",tags:["free","tbc"]},
-{t:"",c:"adult",d:"2027-01-19",when:"Tue 19 Jan",what:"Foo Fighters",url:"https://www.chrislynchmedia.com/?p=47352",where:"One NZ Stadium",note:"Under the roof"},
-{t:"",c:"adult",d:"2027-01-23",when:"Sat 23 Jan",what:"Joe Jackson",url:"https://tickets.songkick.com/metro-areas/31443-new-zealand-christchurch/2027",where:"Christchurch Town Hall",note:""},
-{t:"",c:"adult",d:"2027-01-30",when:"Sat 30 Jan",what:"Great Kiwi Beer Festival",url:"https://www.rova.nz/events/the-great-kiwi-beer-festival-2027",where:"Hagley Park",note:"300+ beers, live music"},
-{t:"",c:"adult",d:"2027-02-06",when:"Feb 2027",what:"Nostalgia Festival",url:"https://setlineapp.com/festivals/nostalgia-festival-2027",where:"Ferrymead Heritage Park",note:"Music in a 1900s township",tags:["tbc"]},
-{t:"",c:"adult",d:"2027-02-26",e:"2027-02-27",when:"26–27 Feb",what:"Electric Avenue",url:"https://www.rova.nz/events/electric-avenue-2027",where:"Hagley Park",note:"Kings of Leon, Calvin Harris, Kasabian, Underworld",tags:["sold"]},
-{t:"",c:"adult",d:"2027-03-01",when:"Mon 1 Mar",what:"Simple Minds + Gary Numan",url:"https://www.eventworld.com/christchurch/concerts/pop",where:"Wolfbrook Arena",note:""},
-{t:"",c:"adult",d:"2027-03-12",when:"Fri 12 Mar",what:"Bryan Adams + Natalie Imbruglia",url:"https://www.rova.nz/events/bryan-adams-announces-roll-with-the-punches-tour-to-new-zealand-2027",where:"Wolfbrook Arena",note:""},
-{t:"13:00–18:00",c:"adult",d:"2027-03-12",e:"2027-03-14",when:"12–14 Mar",what:"DramFest (whisky festival)",url:"https://events.humanitix.com/dramfest-2027",where:"Te Pae",note:"10th anniversary"},
-{t:"",c:"adult",d:"2027-03-13",when:"Sat 13 Mar",what:"North Canterbury Wine & Food Festival",url:"https://hanmerholidayhomes.co.nz/events",where:"Glenmark Domain, Waipara",note:"Under the oaks"},
-{t:"19:30",c:"adult",d:"2027-03-16",when:"Tue 16 Mar",what:"Ronan Keating",url:"https://www.eventworld.com/ronan-keating-christchurch-tickets-16-03-2027/event/565854",where:"Wolfbrook Arena",note:""},
-{t:"19:00",c:"adult",d:"2027-07-30",when:"Fri 30 Jul",what:"Westlife",url:"https://www.eventworld.com/westlife-christchurch-tickets-30-07-2027/event/408222",where:"Wolfbrook Arena",note:""},
+{k:["music", "concert", "indie", "rock", "gig", "indoor"],t:"",c:"adult",d:"2026-11-21",when:"Sat 21 Nov",what:"Courtney Barnett",url:"https://isaactheatreroyal.co.nz/",where:"Isaac Theatre Royal",note:"Creature of Habit tour"},
+{k:["music", "concert", "punk", "rock", "gig", "arena"],t:"20:00",c:"adult",d:"2026-11-21",when:"Sat 21 Nov",what:"Rise Against + Dropkick Murphys",url:"https://www.rova.nz/events/rise-against-2026",where:"Wolfbrook Arena",note:"Punk double bill"},
+{k:["music", "concert", "acoustic", "folk", "surf", "winery", "outdoor", "road-trip"],t:"14:30",c:"adult",d:"2026-11-22",when:"Sun 22 Nov",what:"Jack Johnson + Ben Harper + John Butler",url:"https://www.livenation.co.nz/show/1670946/jack-johnson-surfilmusic-tour/north%20canterbury/2026-11-22/en",where:"Waipara Winehouse",note:"",tags:["sold"]},
+{k:["music", "concert", "pop", "britpop", "stadium"],t:"18:00",c:"adult",d:"2026-11-28",when:"Sat 28 Nov",what:"Robbie Williams · BRITPOP tour",url:"https://www.rova.nz/events/robbie-williams--britpop-world-tour-new-zealand",where:"One NZ Stadium",note:"w/ Drax Project"},
+{k:["theatre", "musical", "rock", "indoor"],t:"19:30 + matinees",c:"adult",d:"2026-12-02",e:"2026-12-06",when:"2–6 Dec",what:"Jesus Christ Superstar",url:"https://isaactheatreroyal.co.nz/jesuschristsuperstar",where:"Isaac Theatre Royal",note:"Touring West End production"},
+{k:["wine", "food", "festival", "outdoor", "music", "drinks"],t:"11:30–19:00",c:"adult",d:"2026-12-05",when:"Sat 5 Dec",what:"South Island Wine & Food Festival",url:"https://www.scenichotelgroup.co.nz/christchurch/whats-on-christchurch/",where:"North Hagley Park",note:""},
+{k:["comedy", "talk", "book", "indoor"],t:"",c:"adult",d:"2026-12-10",when:"Thu 10 Dec",what:"Adam Kay",url:"https://www.stereoboard.com/venues/christchurch/isaac-theatre",where:"Isaac Theatre Royal",note:"Comedy / talk"},
+{k:["comedy", "stand-up", "indoor"],t:"19:00",c:"adult",d:"2026-12-11",when:"Fri 11 Dec · 7pm",what:"Urzila Carlson: Fatty On A Yacht",url:"https://happeningnext.com/event/jesus-christ-superstar-eid3a0djogodj",where:"Christchurch Town Hall",note:"Comedy"},
+{k:["talk", "motorsport", "f1", "indoor"],t:"",c:"adult",d:"2026-12-12",e:"2026-12-15",when:"12 & 15 Dec",what:"An Evening with Guenther Steiner",url:"https://isaactheatreroyal.co.nz/",where:"Isaac Theatre Royal",note:"F1 talk"},
+{k:["music", "festival", "dance", "electronic", "dj", "outdoor"],t:"12:30–22:30",c:"adult",d:"2026-12-28",when:"Mon 28 Dec · 12:30pm",what:"Lakes Festival",url:"https://www.rova.nz/events/lakes-festival-2026",where:"North Hagley Park",note:"Armand Van Helden, Netsky, Mall Grab"},
+{k:["new-year", "fireworks", "music", "party", "outdoor"],t:"20:00–00:15",c:"adult",d:"2026-12-31",when:"Thu 31 Dec · 8pm–12",what:"NYE party + midnight fireworks",url:"https://www.christchurchnz.com/visit/whats-on/new-years-eve",where:"North Hagley Park",note:"Best for 15+",tags:["free","tbc"]},
+{k:["music", "concert", "rock", "stadium"],t:"",c:"adult",d:"2027-01-19",when:"Tue 19 Jan",what:"Foo Fighters",url:"https://www.chrislynchmedia.com/?p=47352",where:"One NZ Stadium",note:"Under the roof"},
+{k:["music", "concert", "rock", "new-wave", "gig", "indoor"],t:"",c:"adult",d:"2027-01-23",when:"Sat 23 Jan",what:"Joe Jackson",url:"https://tickets.songkick.com/metro-areas/31443-new-zealand-christchurch/2027",where:"Christchurch Town Hall",note:""},
+{k:["beer", "craft-beer", "festival", "drinks", "music", "outdoor"],t:"",c:"adult",d:"2027-01-30",when:"Sat 30 Jan",what:"Great Kiwi Beer Festival",url:"https://www.rova.nz/events/the-great-kiwi-beer-festival-2027",where:"Hagley Park",note:"300+ beers, live music"},
+{k:["music", "festival", "retro", "heritage", "outdoor"],t:"",c:"adult",d:"2027-02-06",when:"Feb 2027",what:"Nostalgia Festival",url:"https://setlineapp.com/festivals/nostalgia-festival-2027",where:"Ferrymead Heritage Park",note:"Music in a 1900s township",tags:["tbc"]},
+{k:["music", "festival", "rock", "dance", "electronic", "indie", "outdoor"],t:"",c:"adult",d:"2027-02-26",e:"2027-02-27",when:"26–27 Feb",what:"Electric Avenue",url:"https://www.rova.nz/events/electric-avenue-2027",where:"Hagley Park",note:"Kings of Leon, Calvin Harris, Kasabian, Underworld",tags:["sold"]},
+{k:["music", "concert", "rock", "80s", "new-wave", "arena"],t:"",c:"adult",d:"2027-03-01",when:"Mon 1 Mar",what:"Simple Minds + Gary Numan",url:"https://www.eventworld.com/christchurch/concerts/pop",where:"Wolfbrook Arena",note:""},
+{k:["music", "concert", "rock", "pop", "arena"],t:"",c:"adult",d:"2027-03-12",when:"Fri 12 Mar",what:"Bryan Adams + Natalie Imbruglia",url:"https://www.rova.nz/events/bryan-adams-announces-roll-with-the-punches-tour-to-new-zealand-2027",where:"Wolfbrook Arena",note:""},
+{k:["whisky", "spirits", "tasting", "festival", "drinks", "indoor"],t:"13:00–18:00",c:"adult",d:"2027-03-12",e:"2027-03-14",when:"12–14 Mar",what:"DramFest (whisky festival)",url:"https://events.humanitix.com/dramfest-2027",where:"Te Pae",note:"10th anniversary"},
+{k:["wine", "food", "festival", "outdoor", "music", "drinks", "road-trip"],t:"",c:"adult",d:"2027-03-13",when:"Sat 13 Mar",what:"North Canterbury Wine & Food Festival",url:"https://hanmerholidayhomes.co.nz/events",where:"Glenmark Domain, Waipara",note:"Under the oaks"},
+{k:["music", "concert", "pop", "arena"],t:"19:30",c:"adult",d:"2027-03-16",when:"Tue 16 Mar",what:"Ronan Keating",url:"https://www.eventworld.com/ronan-keating-christchurch-tickets-16-03-2027/event/565854",where:"Wolfbrook Arena",note:""},
+{k:["music", "concert", "pop", "boyband", "arena"],t:"19:00",c:"adult",d:"2027-07-30",when:"Fri 30 Jul",what:"Westlife",url:"https://www.eventworld.com/westlife-christchurch-tickets-30-07-2027/event/408222",where:"Wolfbrook Arena",note:""},
 
 /* ---------- BEYOND ---------- */
-{t:"",c:"away",d:"2027-01-30",e:"2027-01-31",when:"30–31 Jan",what:"Summer Concert Tour: Seal + Bastille",url:"https://www.1news.co.nz/2026/09/25/seal-bastille-to-headline-greenstone-summer-concert-2027/",where:"Wānaka (30th) · Taupō (31st)",note:"Seal's first NZ visit"},
-{t:"",c:"away",d:"2027-03-13",e:"2027-03-16",when:"13, 14 & 16 Mar",what:"Bruno Mars · The Romantic Tour",url:"https://www.1news.co.nz/2026/09/03/bruno-mars-adds-third-auckland-show/",where:"Eden Park, Auckland",note:"Only NZ dates; w/ Tyla"},
-{t:"Opens Thu 24 Jun",c:"away",d:"2027-06-24",e:"2027-07-25",when:"24 Jun – 25 Jul",what:"FIFA Women's World Cup",url:"https://inside.fifa.com/media-releases/fifa-womens-world-cup-brazil-2027-dates-confirmed",where:"Brazil",note:"Football Ferns have qualified"},
-{t:"2 races Sat 10 Jul",c:"away",d:"2027-07-10",e:"2027-07-18",when:"10–18 Jul",what:"America's Cup Match",url:"https://www.boatingnz.co.nz/2026/01/louis-vuitton-38th-americas-cup-partnership-launched-in-naples/",where:"Naples, Italy",note:"Team NZ defending"},
-{t:"ABs first game 18:15 NZT",c:"away",d:"2027-10-01",e:"2027-11-13",when:"1 Oct – 13 Nov",what:"Rugby World Cup",url:"https://www.allblacks.com/news/all-blacks-rugby-world-cup-2027-campaign-to-kick-off-against-chile",where:"Australia",note:"ABs v Chile 2 Oct (Perth), v Wallabies 9 Oct (Sydney), v Hong Kong 15 Oct (Melb)"}
+{k:["music", "concert", "pop", "soul", "festival", "outdoor", "road-trip"],t:"",c:"away",d:"2027-01-30",e:"2027-01-31",when:"30–31 Jan",what:"Summer Concert Tour: Seal + Bastille",url:"https://www.1news.co.nz/2026/09/25/seal-bastille-to-headline-greenstone-summer-concert-2027/",where:"Wānaka (30th) · Taupō (31st)",note:"Seal's first NZ visit"},
+{k:["music", "concert", "pop", "funk", "stadium", "road-trip"],t:"",c:"away",d:"2027-03-13",e:"2027-03-16",when:"13, 14 & 16 Mar",what:"Bruno Mars · The Romantic Tour",url:"https://www.1news.co.nz/2026/09/03/bruno-mars-adds-third-auckland-show/",where:"Eden Park, Auckland",note:"Only NZ dates; w/ Tyla"},
+{k:["sport", "football", "soccer", "football-ferns", "international"],t:"Opens Thu 24 Jun",c:"away",d:"2027-06-24",e:"2027-07-25",when:"24 Jun – 25 Jul",what:"FIFA Women's World Cup",url:"https://inside.fifa.com/media-releases/fifa-womens-world-cup-brazil-2027-dates-confirmed",where:"Brazil",note:"Football Ferns have qualified"},
+{k:["sport", "sailing", "yachting", "team-nz", "international"],t:"2 races Sat 10 Jul",c:"away",d:"2027-07-10",e:"2027-07-18",when:"10–18 Jul",what:"America's Cup Match",url:"https://www.boatingnz.co.nz/2026/01/louis-vuitton-38th-americas-cup-partnership-launched-in-naples/",where:"Naples, Italy",note:"Team NZ defending"},
+{k:["sport", "rugby", "all-blacks", "international"],t:"ABs first game 18:15 NZT",c:"away",d:"2027-10-01",e:"2027-11-13",when:"1 Oct – 13 Nov",what:"Rugby World Cup",url:"https://www.allblacks.com/news/all-blacks-rugby-world-cup-2027-campaign-to-kick-off-against-chile",where:"Australia",note:"ABs v Chile 2 Oct (Perth), v Wallabies 9 Oct (Sydney), v Hong Kong 15 Oct (Melb)"}
 ];
 
 const today=new Date(); today.setHours(0,0,0,0);
@@ -256,7 +259,7 @@ function renderBoards(){
     return `<div class="${rc}" data-i="${EVENTS.indexOf(e)}">
       <div class="d">${esc(dateCol(e))}<span class="tm">${esc(e.t||"Time TBC")}</span></div>
       <div class="ago">${away(e)}</div>
-      <div class="w"><a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.what)}</a>${e.note?`<span class="n">${esc(e.note)}</span>`:""}${tl.length&&cls!=="past"?`<span class="tags">${tl.join("")}</span>`:""}</div>
+      <div class="w"><a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.what)}</a>${e.note?`<span class="n">${esc(e.note)}</span>`:""}${tl.length&&cls!=="past"?`<span class="tags">${tl.join("")}</span>`:""}${(e.k||[]).length?`<span class="kw">${e.k.map(x=>`<button class="hk" data-k="${esc(x)}">#${esc(x)}</button>`).join(" ")}</span>`:""}</div>
       <div class="v">${esc(e.where)}</div>
       <div class="s ${cls}">${label}</div>
       <div class="act">
@@ -275,6 +278,8 @@ if(typeof runSearch==="function") runSearch();
 }
 
 document.addEventListener("click",ev=>{
+  const hk=ev.target.closest(".hk");
+  if(hk){qEl.value=hk.dataset.k.replace(/-/g," ");placeCursor();runSearch();qEl.focus();window.scrollTo({top:0,behavior:"smooth"});return;}
   const btn=ev.target.closest(".act button");
   if(!btn){
     const row=ev.target.closest(".r[data-i]");
@@ -311,7 +316,7 @@ const DAYS=["sunday","monday","tuesday","wednesday","thursday","friday","saturda
 const norm=t=>t.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9: ]+/g," ");
 const HAY=EVENTS.map(e=>{
   const dt=start(e);
-  const kw=/crusaders|super rugby|rugby world/i.test(e.what)?"rugby sport":/blackcaps/i.test(e.what)?"cricket sport":/supercars/i.test(e.what)?"motorsport cars racing sport":/america/i.test(e.what)?"sailing yachting sport":/world cup/i.test(e.what)?"football soccer sport":/parade|christmas|nye|sparks/i.test(e.what)?"christmas festive":"";
+  const kw=(e.k||[]).map(x=>x+" "+x.replace(/-/g," ")).join(" ");
   const cat={family:"family kids all ages",adult:"adults night out",away:"beyond away overseas trip"}[e.c];
   const text=norm([kw,e.what,e.where,e.note,e.when,e.t||"",(e.tags||[]).join(" "),(e.tags||[]).includes("sold")?"sold out":"",MONTHS[dt.getMonth()],DAYS[dt.getDay()],cat].join(" "));
   return {text,words:text.split(/\s+/).filter(Boolean)};
@@ -323,7 +328,7 @@ function subseq(q,w){let i=0;for(const c of w){if(c===q[i])i++;if(i===q.length)r
 function tokenHits(tok,h){
   if(h.text.includes(tok)) return true;
   const max=tok.length>=7?2:tok.length>=4?1:0;
-  return h.words.some(w=>(tok.length>=3&&w[0]===tok[0]&&subseq(tok,w)&&w.length<=tok.length*2)||(max&&(osa(tok,w)<=max||osa(tok,w.slice(0,tok.length))<=max)));
+  return h.words.some(w=>(tok.length>=3&&w[0]===tok[0]&&subseq(tok,w)&&w.length<=tok.length*2)||(max&&(tok.length>5||w[0]===tok[0])&&(osa(tok,w)<=max||osa(tok,w.slice(0,tok.length))<=max)));
 }
 const qEl=document.getElementById("q"),mirror=document.getElementById("mirror"),cur=document.getElementById("cur");
 function placeCursor(){
