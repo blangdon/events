@@ -56,6 +56,8 @@
   .tg{display:inline-block;font-size:11px;font-weight:500;letter-spacing:.06em;padding:0 5px;margin-right:5px;color:#0a0a0a;line-height:1.5;vertical-align:1px}
   .tg.free{background:#55ff55}.tg.sold{background:#ff5555}.tg.tbc{background:#ff55ff}.tg.soon{background:#fff}
   .r .tags{display:block;margin-top:4px}
+  mark{background:#ffff55;color:#0a0a0a;padding:0 1px}
+  .r .kw mark{background:#ffff55;color:#0a0a0a}
   .r .kw .hk{all:unset;cursor:pointer}
   .r .kw .hk:hover{color:var(--hi)}
   .r .kw{display:block;margin-top:4px;text-transform:none;letter-spacing:.02em;color:#5f5f5c;font-size:11.5px}
@@ -259,7 +261,7 @@ function renderBoards(){
     return `<div class="${rc}" data-i="${EVENTS.indexOf(e)}">
       <div class="d">${esc(dateCol(e))}<span class="tm">${esc(e.t||"Time TBC")}</span></div>
       <div class="ago">${away(e)}</div>
-      <div class="w"><a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.what)}</a>${e.note?`<span class="n">${esc(e.note)}</span>`:""}${tl.length&&cls!=="past"?`<span class="tags">${tl.join("")}</span>`:""}${(e.k||[]).length?`<span class="kw">${e.k.map(x=>`<button class="hk" data-k="${esc(x)}">#${esc(x)}</button>`).join(" ")}</span>`:""}</div>
+      <div class="w"><a href="${esc(e.url)}" target="_blank" rel="noopener" class="ttl" data-raw="${esc(e.what)}">${esc(e.what)}</a>${e.note?`<span class="n">${esc(e.note)}</span>`:""}${tl.length&&cls!=="past"?`<span class="tags">${tl.join("")}</span>`:""}${(e.k||[]).length?`<span class="kw">${e.k.map(x=>`<button class="hk" data-k="${esc(x)}">#${esc(x)}</button>`).join(" ")}</span>`:""}</div>
       <div class="v">${esc(e.where)}</div>
       <div class="s ${cls}">${label}</div>
       <div class="act">
@@ -337,10 +339,41 @@ function placeCursor(){
   cur.style.left=(12+Math.min(w,box))+"px";
   cur.style.animation="none"; void cur.offsetWidth; cur.style.animation="";
 }
+function wordHit(tok,w){
+  if(w.includes(tok)) return "sub";
+  const max=tok.length>=7?2:tok.length>=4?1:0;
+  if(tok.length>=3&&w[0]===tok[0]&&subseq(tok,w)&&w.length<=tok.length*2) return "word";
+  if(max&&(tok.length>5||w[0]===tok[0])&&(osa(tok,w)<=max||osa(tok,w.slice(0,tok.length))<=max)) return "word";
+  return "";
+}
+function highlight(raw,toks){
+  if(!toks.length) return esc(raw);
+  const ranges=[], re=/[A-Za-zÀ-ÿĀ-ž0-9']+/g; let m;
+  while((m=re.exec(raw))){
+    const w=norm(m[0]).replace(/\s+/g,"");
+    for(const t of toks){
+      const h=wordHit(t,w); if(!h) continue;
+      if(h==="sub"){const i=w.indexOf(t); ranges.push([m.index+i,m.index+i+t.length]);}
+      else ranges.push([m.index,m.index+m[0].length]);
+    }
+  }
+  if(!ranges.length) return esc(raw);
+  ranges.sort((a,b)=>a[0]-b[0]);
+  const merged=[ranges[0].slice()];
+  for(const r of ranges.slice(1)){const l=merged[merged.length-1]; if(r[0]<=l[1]) l[1]=Math.max(l[1],r[1]); else merged.push(r.slice());}
+  let out="",pos=0;
+  for(const [a,b] of merged){out+=esc(raw.slice(pos,a))+"<mark>"+esc(raw.slice(a,b))+"</mark>";pos=b;}
+  return out+esc(raw.slice(pos));
+}
 function runSearch(){
   const toks=norm(qEl.value).split(/\s+/).filter(Boolean);
   let shown=0;
-  document.querySelectorAll(".r[data-i]").forEach(r=>r.classList.toggle("nomatch",toks.length>0&&!toks.every(t=>tokenHits(t,HAY[+r.dataset.i]))));
+  document.querySelectorAll(".r[data-i]").forEach(r=>{
+    const ok=!toks.length||toks.every(t=>tokenHits(t,HAY[+r.dataset.i]));
+    r.classList.toggle("nomatch",!ok);
+    const a=r.querySelector(".ttl"); a.innerHTML=ok?highlight(a.dataset.raw,toks):esc(a.dataset.raw);
+    r.querySelectorAll(".hk").forEach(b=>{const raw="#"+b.dataset.k; b.innerHTML=ok&&toks.length?"#"+highlight(b.dataset.k,toks):esc(raw);});
+  });
   document.querySelectorAll("section").forEach(sec=>{
     const vis=[...sec.querySelectorAll(".r[data-i]")].filter(r=>!r.classList.contains("nomatch")&&!(r.classList.contains("removed")&&!document.body.classList.contains("showdel"))&&!r.classList.contains("past")).length;
     sec.classList.toggle("empty",toks.length>0&&vis===0);
