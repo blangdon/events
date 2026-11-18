@@ -25,6 +25,19 @@
   aside .more{all:unset;display:block;margin:16px 8px 0;color:var(--dim);font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
   aside .more:hover{color:var(--hi)}
   aside .more[hidden]{display:none}
+  .favs{margin-top:28px}
+  .favs[hidden]{display:none}
+  .favs h3{margin:0 8px 6px;font-size:11.5px;font-weight:500;letter-spacing:.08em;color:#ff5555;text-transform:uppercase}
+  .favs ol{list-style:none;margin:0;padding:0;max-height:calc(100vh - 300px);overflow:auto}
+  .fv>button{all:unset;display:block;box-sizing:border-box;width:100%;padding:4px 8px;cursor:pointer;text-transform:uppercase;letter-spacing:.04em}
+  .fv>button:hover{background:#151515}
+  .fv .fd{display:block;color:var(--dim);font-size:10.5px}
+  .fv .fn{display:block;font-size:12.5px;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fv.exp .fn{white-space:normal}
+  .fv .fx{display:none;padding:2px 8px 10px;font-size:11.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.04em;line-height:1.55}
+  .fv.exp .fx{display:block}
+  .fv .fx a{color:var(--hi);text-decoration:underline;text-underline-offset:3px}
+  .fv .fx .unfav{all:unset;cursor:pointer;color:#ff5555;margin-left:10px}
 
   /* search: just a block cursor */
   .search{position:relative;padding:9px 12px;height:46px;cursor:text;overflow:hidden}
@@ -41,7 +54,7 @@
   h2{font-weight:500;font-size:20px;letter-spacing:.06em;margin:0 0 8px;text-transform:uppercase}
 
   .board{border-top:1px solid var(--rule)}
-  .r{display:grid;grid-template-columns:190px 96px minmax(0,1.5fr) minmax(0,1fr) 100px 64px;gap:18px;align-items:baseline;
+  .r{display:grid;grid-template-columns:190px 96px minmax(0,1.5fr) minmax(0,1fr) 100px 92px;gap:18px;align-items:baseline;
     padding:7px 4px 6px;border-bottom:1px solid var(--rule);text-transform:uppercase;letter-spacing:.06em}
   .r .d{font-variant-numeric:tabular-nums;line-height:1.3}
   .r .ago{color:var(--fg);font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -62,9 +75,11 @@
   .r .kw .hk:hover{color:var(--hi)}
   .r .kw{display:block;margin-top:4px;text-transform:none;letter-spacing:.02em;color:#5f5f5c;font-size:11.5px}
 
-  .act{display:flex;gap:2px;justify-content:flex-end;align-self:center;visibility:hidden;opacity:0;transition:opacity .12s}
-  @media (hover:hover){ .r:hover .act{visibility:visible;opacity:1} }
-  .r.open .act{visibility:visible;opacity:1}
+  .act{display:flex;gap:2px;justify-content:flex-end;align-self:center}
+  .act button{visibility:hidden;opacity:0;transition:opacity .12s}
+  @media (hover:hover){ .r:hover .act button{visibility:visible;opacity:1} }
+  .r.open .act button,.act .fav[aria-pressed="true"]{visibility:visible;opacity:1}
+  .act .fav[aria-pressed="true"]{color:#ff5555}.act .fav[aria-pressed="true"] svg{fill:#ff5555}
   .act button{background:none;border:0;padding:4px;cursor:pointer;color:#4a4a48;line-height:0}
   .act button svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
   .act button:hover{color:var(--hi)}
@@ -107,6 +122,7 @@
     <li><button data-f="away" aria-pressed="false">Beyond<span id="n-away"></span></button></li>
   </ul>
   <button class="more" id="showdel" hidden></button>
+  <div class="favs" id="favs" hidden><h3>♥ Favourites</h3><ol id="favlist"></ol></div>
 </aside>
 
 <main>
@@ -216,6 +232,7 @@ function away(e){
 
 const idOf=e=>(e.what+"-"+e.d).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,80);
 EVENTS.forEach(e=>e.id=idOf(e));
+const ICON_HEART='<svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>';
 const ICON_UP='<svg viewBox="0 0 24 24"><path d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></svg>';
 
 /* ---- prefs: votes + removed. Synced via the artifact db when available, else this browser only ---- */
@@ -228,8 +245,8 @@ function savePref(e){
   cache();
   if(!dbCol) return;
   const doc=dbCol.doc(e.id);
-  const empty=!p.vote&&!p.removed;
-  (empty?doc.delete():doc.set({vote:p.vote||0,removed:!!p.removed,what:e.what,date:e.d,cat:e.c,at:new Date().toISOString()}))
+  const empty=!p.vote&&!p.removed&&!p.fav;
+  (empty?doc.delete():doc.set({vote:p.vote||0,removed:!!p.removed,fav:!!p.fav,what:e.what,date:e.d,cat:e.c,at:new Date().toISOString()}))
     .catch(()=>{});
 }
 (async()=>{
@@ -240,7 +257,7 @@ function savePref(e){
     dbCol.onSnapshot(snap=>{
       clearTimeout(t);
       const next={};
-      (snap.docs||snap).forEach(d=>{const v=d.data?d.data():d; next[d.id]={vote:v.vote||0,removed:!!v.removed}});
+      (snap.docs||snap).forEach(d=>{const v=d.data?d.data():d; next[d.id]={vote:v.vote||0,removed:!!v.removed,fav:!!v.fav}});
       PREFS=next; cache(); renderBoards();
       
     },()=>clearTimeout(t));
@@ -264,6 +281,7 @@ function renderBoards(){
       <div class="v">${esc(e.where)}</div>
       <div class="s">${tl.length?tl.join(""):`<span class="onsale">ON SALE</span>`}</div>
       <div class="act">
+        <button class="fav" data-a="fav" aria-pressed="${!!p.fav}" title="${p.fav?"Unfavourite":"Favourite"}">${ICON_HEART}</button>
         <button class="up" data-a="up" aria-pressed="${p.vote>0}" title="Like">${ICON_UP}</button>
         <button class="x" data-a="x" title="${p.removed?"Restore":"Remove from list"}">${p.removed?"↺":"✕"}</button>
       </div></div>`;
@@ -275,8 +293,23 @@ const up=live.filter(e=>end(e)>=today);
 document.getElementById("n-all").textContent=up.length;
 const nDel=EVENTS.length-live.length, sd=document.getElementById("showdel");
 sd.hidden=!nDel; sd.textContent=(document.body.classList.contains("showdel")?"Hide":"Show")+" removed ("+nDel+")";
+renderFavs();
 if(typeof runSearch==="function") runSearch();
 }
+const openFavs=new Set();
+function renderFavs(){
+  const favs=EVENTS.filter(e=>(PREFS[e.id]||{}).fav&&!(PREFS[e.id]||{}).removed&&end(e)>=today).sort((a,b)=>a.d.localeCompare(b.d));
+  const box=document.getElementById("favs"); box.hidden=!favs.length;
+  document.getElementById("favlist").innerHTML=favs.map(e=>`<li class="fv${openFavs.has(e.id)?" exp":""}" data-id="${e.id}">
+    <button aria-expanded="${openFavs.has(e.id)}"><span class="fd">${esc(dateCol(e))} · ${away(e)}</span><span class="fn">${esc(e.what)}</span></button>
+    <div class="fx">${esc(e.t||"Time TBC")}<br>${esc(e.where)}<br><a href="${esc(e.url)}" target="_blank" rel="noopener">Details ↗</a><button class="unfav" data-id="${e.id}">♥ Remove</button></div></li>`).join("");
+}
+document.getElementById("favlist").addEventListener("click",ev=>{
+  const un=ev.target.closest(".unfav");
+  if(un){const e=EVENTS.find(x=>x.id===un.dataset.id); PREFS[e.id]={...(PREFS[e.id]||{}),fav:false}; openFavs.delete(e.id); savePref(e); renderBoards(); return;}
+  const li=ev.target.closest(".fv"); if(!li||ev.target.closest("a")) return;
+  const id=li.dataset.id; openFavs.has(id)?openFavs.delete(id):openFavs.add(id); renderFavs();
+});
 
 document.addEventListener("click",ev=>{
   const hk=ev.target.closest(".hk");
@@ -295,6 +328,7 @@ document.addEventListener("click",ev=>{
   const p=PREFS[e.id]={...(PREFS[e.id]||{})};
   const a=btn.dataset.a;
   if(a==="up") p.vote=p.vote>0?0:1;
+  if(a==="fav") p.fav=!p.fav;
   if(a==="x") p.removed=!p.removed;
   savePref(e); renderBoards();
   const again=document.querySelector(`.r[data-i="${EVENTS.indexOf(e)}"]`); if(again&&!matchMedia("(hover:hover)").matches) again.classList.add("open");
