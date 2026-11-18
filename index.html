@@ -11,7 +11,7 @@
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--fg);font-family:"IBM Plex Mono",ui-monospace,monospace;
     font-size:15px;line-height:1.35;-webkit-font-smoothing:antialiased}
-  .app{max-width:1240px;margin:0 auto;padding:28px 18px 50px;display:grid;grid-template-columns:190px minmax(0,1fr);gap:34px}
+  .app{max-width:1320px;margin:0 auto;padding:28px 18px 50px;display:grid;grid-template-columns:190px minmax(0,1fr);gap:88px}
 
   /* sidebar */
   aside{position:sticky;top:28px;align-self:start}
@@ -44,7 +44,7 @@
   h2{font-weight:500;font-size:20px;letter-spacing:.06em;margin:0 0 8px;text-transform:uppercase}
 
   .board{border-top:1px solid var(--rule)}
-  .r{display:grid;grid-template-columns:170px minmax(0,1.5fr) minmax(0,1fr) 110px;gap:18px;align-items:baseline;
+  .r{display:grid;grid-template-columns:170px minmax(0,1.5fr) minmax(0,1fr) 100px 92px;gap:18px;align-items:baseline;
     padding:7px 4px 6px;border-bottom:1px solid var(--rule);text-transform:uppercase;letter-spacing:.06em}
   .r .d{font-variant-numeric:tabular-nums;line-height:1.3;white-space:pre-line}
   .r .d .tm{display:block;color:var(--dim);font-size:12.5px;letter-spacing:.04em;margin-top:2px}
@@ -61,6 +61,18 @@
   .s.free{color:#55ff55}.s.sold{color:#ff5555}.s.tbc{color:#ff55ff}
   .s.soon{background:#fff;color:#0a0a0a;padding:0 5px;justify-self:end}
 
+  .act{display:flex;gap:2px;justify-content:flex-end;align-self:center}
+  .act button{background:none;border:0;padding:4px;cursor:pointer;color:#4a4a48;line-height:0}
+  .act button svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .act button:hover{color:var(--hi)}
+  .act .x{font:inherit;font-size:17px;line-height:17px;width:25px}
+  .act .up[aria-pressed="true"]{color:#55ff55}.act .up[aria-pressed="true"] svg{fill:rgba(85,255,85,.25)}
+  .act .dn[aria-pressed="true"]{color:#ff5555}.act .dn[aria-pressed="true"] svg{fill:rgba(255,85,85,.25)}
+  .act .x:hover{color:#ff5555}
+  .r.voted-dn .w a{color:var(--dim)}
+  .r.removed{display:none}
+  .showdel .r.removed{display:grid;opacity:.35}
+  .showdel .r.removed .w a{text-decoration:line-through}
   .none{display:none;margin-top:30px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
   footer{margin-top:40px;color:var(--dim);font-size:12px}
 
@@ -75,6 +87,8 @@
     .r{grid-template-columns:96px minmax(0,1fr) auto;gap:10px}
     .r .v{grid-column:2;grid-row:2;color:var(--dim);font-size:12.5px}
     .r .s{grid-column:3;grid-row:1}
+    .act{grid-column:3;grid-row:2;align-self:end}
+    .act button{color:#6a6a68}
     .r .d{font-size:13px}
     .r .w a{font-size:15px}
   }
@@ -90,7 +104,7 @@
     <li><button data-f="adult" aria-pressed="false">Adults<span id="n-adult"></span></button></li>
     <li><button data-f="away" aria-pressed="false">Beyond<span id="n-away"></span></button></li>
   </ul>
-  <div class="info">Christchurch / Canterbury<br>Updated 18 Nov 2026<br>Check links before you go<br><br><button id="past">Hide departed</button></div>
+  <div class="info">Christchurch / Canterbury<br>Updated 18 Nov 2026<br>Check links before you go<br><br><button id="past">Hide past events</button><br><button id="showdel" hidden></button><br><span id="sync"></span></div>
 </aside>
 
 <main>
@@ -180,7 +194,7 @@ function dateCol(e){
 }
 function status(e){
   const t=e.tags||[];
-  if(end(e)<today) return ["past","DEPARTED"];
+  if(end(e)<today) return ["past","ENDED"];
   if(t.includes("sold")) return ["sold","SOLD OUT"];
   if(t.includes("tbc")) return ["tbc","TBC"];
   if(start(e)<=week) return ["soon","THIS WEEK"];
@@ -189,21 +203,63 @@ function status(e){
 }
 const L={free:"FREE",sold:"SOLD OUT",tbc:"TBC"};
 
+const idOf=e=>(e.what+"-"+e.d).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,80);
+EVENTS.forEach(e=>e.id=idOf(e));
+const ICON_UP='<svg viewBox="0 0 24 24"><path d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></svg>';
+const ICON_DN='<svg viewBox="0 0 24 24"><path d="M17 14V2M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/></svg>';
+
+/* ---- prefs: votes + removed. Synced via the artifact db when available, else this browser only ---- */
+let PREFS={};
+try{PREFS=JSON.parse(localStorage.getItem("whatson-prefs")||"{}")}catch(_){}
+let dbCol=null;
+const cache=()=>{try{localStorage.setItem("whatson-prefs",JSON.stringify(PREFS))}catch(_){}};
+function savePref(e){
+  const p=PREFS[e.id]||{};
+  cache();
+  if(!dbCol) return;
+  const doc=dbCol.doc(e.id);
+  const empty=!p.vote&&!p.removed;
+  (empty?doc.delete():doc.set({vote:p.vote||0,removed:!!p.removed,what:e.what,date:e.d,cat:e.c,at:new Date().toISOString()}))
+    .catch(err=>{document.getElementById("sync").textContent="Not saved: "+(err&&err.message||"error")});
+}
+(async()=>{
+  try{
+    const db=window.claude&&await claude.use("db"); if(!db) return;
+    dbCol=db.collection("prefs");
+    const t=setTimeout(()=>{},10000);
+    dbCol.onSnapshot(snap=>{
+      clearTimeout(t);
+      const next={};
+      (snap.docs||snap).forEach(d=>{const v=d.data?d.data():d; next[d.id]={vote:v.vote||0,removed:!!v.removed}});
+      PREFS=next; cache(); renderBoards();
+      document.getElementById("sync").textContent="Votes sync across devices";
+    },()=>clearTimeout(t));
+  }catch(_){}
+})();
+
+function renderBoards(){
 ["family","adult","away"].forEach(cat=>{
   const list=EVENTS.filter(e=>e.c===cat).sort((a,b)=>a.d.localeCompare(b.d));
   document.getElementById(cat).innerHTML=list.map(e=>{
     const [cls,label]=status(e);
+    const p=PREFS[e.id]||{};
     const tl=(e.tags||[]).filter(t=>L[t]).map(t=>`<span class="tg ${t}">${L[t]}</span>`);
     if(cls==="soon") tl.unshift(`<span class="tg soon">THIS WEEK</span>`);
-    return `<div class="r${cls==="past"?" past":""}" data-i="${EVENTS.indexOf(e)}">
+    const rc=["r",cls==="past"?"past":"",p.removed?"removed":"",p.vote<0?"voted-dn":""].filter(Boolean).join(" ");
+    return `<div class="${rc}" data-i="${EVENTS.indexOf(e)}">
       <div class="d">${esc(dateCol(e))}<span class="tm">${esc(e.t||"Time TBC")}</span></div>
       <div class="w"><a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.what)}</a>${e.note?`<span class="n">${esc(e.note)}</span>`:""}${tl.length&&cls!=="past"?`<span class="tags">${tl.join("")}</span>`:""}</div>
       <div class="v">${esc(e.where)}</div>
-      <div class="s ${cls}">${label}</div></div>`;
+      <div class="s ${cls}">${label}</div>
+      <div class="act">
+        <button class="up" data-a="up" aria-pressed="${p.vote>0}" title="More like this">${ICON_UP}</button>
+        <button class="dn" data-a="dn" aria-pressed="${p.vote<0}" title="Less like this">${ICON_DN}</button>
+        <button class="x" data-a="x" title="${p.removed?"Restore":"Remove from list"}">${p.removed?"↺":"✕"}</button>
+      </div></div>`;
   }).join("");
 });
-
-const up=EVENTS.filter(e=>end(e)>=today);
+const live=EVENTS.filter(e=>!(PREFS[e.id]||{}).removed);
+const up=live.filter(e=>end(e)>=today);
 const local=up.filter(e=>e.c!=="away").sort((a,b)=>a.d.localeCompare(b.d));
 const next=local[0];
 document.getElementById("stats").innerHTML=`
@@ -213,6 +269,22 @@ document.getElementById("stats").innerHTML=`
   <div><span>Next up</span><b>${next?`<a href="${esc(next.url)}" target="_blank" rel="noopener">${esc(next.what.toUpperCase())}</a>`:"—"}</b></div>`;
 ["family","adult","away"].forEach(c=>document.getElementById("n-"+c).textContent=up.filter(e=>e.c===c).length);
 document.getElementById("n-all").textContent=up.length;
+const nDel=EVENTS.length-live.length, sd=document.getElementById("showdel");
+sd.hidden=!nDel; sd.textContent=(document.body.classList.contains("showdel")?"Hide":"Show")+" removed ("+nDel+")";
+if(typeof runSearch==="function") runSearch();
+}
+
+document.addEventListener("click",ev=>{
+  const btn=ev.target.closest(".act button"); if(!btn) return;
+  const e=EVENTS[+btn.closest(".r").dataset.i];
+  const p=PREFS[e.id]={...(PREFS[e.id]||{})};
+  const a=btn.dataset.a;
+  if(a==="up") p.vote=p.vote>0?0:1;
+  if(a==="dn") p.vote=p.vote<0?0:-1;
+  if(a==="x") p.removed=!p.removed;
+  savePref(e); renderBoards();
+});
+document.getElementById("showdel").onclick=()=>{document.body.classList.toggle("showdel");renderBoards()};
 
 /* filters */
 let filter="all";
@@ -224,7 +296,7 @@ function setFilter(f){
 }
 document.querySelectorAll("aside button[data-f]").forEach(b=>b.onclick=()=>{setFilter(b.dataset.f);qEl.focus()});
 const pb=document.getElementById("past");
-pb.onclick=()=>{const on=document.body.classList.toggle("hidepast");pb.textContent=on?"Show departed":"Hide departed";runSearch();};
+pb.onclick=()=>{const on=document.body.classList.toggle("hidepast");pb.textContent=on?"Show past events":"Hide past events";runSearch();};
 
 /* fuzzy search */
 const MONTHS=["january","february","march","april","may","june","july","august","september","october","november","december"];
@@ -258,7 +330,7 @@ function runSearch(){
   let shown=0;
   document.querySelectorAll(".r[data-i]").forEach(r=>r.classList.toggle("nomatch",toks.length>0&&!toks.every(t=>tokenHits(t,HAY[+r.dataset.i]))));
   document.querySelectorAll("section").forEach(sec=>{
-    const vis=[...sec.querySelectorAll(".r[data-i]")].filter(r=>!r.classList.contains("nomatch")&&!(document.body.classList.contains("hidepast")&&r.classList.contains("past"))).length;
+    const vis=[...sec.querySelectorAll(".r[data-i]")].filter(r=>!r.classList.contains("nomatch")&&!(r.classList.contains("removed")&&!document.body.classList.contains("showdel"))&&!(document.body.classList.contains("hidepast")&&r.classList.contains("past"))).length;
     sec.classList.toggle("empty",toks.length>0&&vis===0);
     if(filter==="all"||sec.dataset.sec===filter) shown+=vis;
   });
@@ -271,6 +343,7 @@ document.addEventListener("keydown",e=>{
   if(e.key.length===1&&!e.metaKey&&!e.ctrlKey&&!e.altKey){qEl.focus()}
   if(e.key==="Backspace"){qEl.focus()}
 });
+renderBoards();
 document.fonts&&document.fonts.ready.then(placeCursor); placeCursor();
 </script>
 </body>
