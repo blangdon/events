@@ -11,7 +11,7 @@
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--fg);font-family:"IBM Plex Mono",ui-monospace,monospace;
     font-size:15px;line-height:1.35;-webkit-font-smoothing:antialiased}
-  .app{max-width:1520px;margin:0;padding:28px 28px 50px 20px;display:grid;grid-template-columns:180px minmax(0,1fr);gap:96px}
+  .app{max-width:1520px;margin:0 auto;padding:28px 24px 50px;display:grid;grid-template-columns:180px minmax(0,1fr);gap:96px}
 
   /* sidebar */
   aside{position:sticky;top:28px;align-self:start;margin-top:var(--list-top,76px)}
@@ -133,7 +133,7 @@
 
 <main>
   <div class="search" id="sbox">
-    <input id="q" type="text" aria-label="Filter events" autocomplete="off" spellcheck="false" placeholder="Search">
+    <input id="q" type="text" aria-label="Filter events" autocomplete="off" spellcheck="false" placeholder="Search ...">
     <span class="mirror" id="mirror"></span>
     <span class="cur" id="cur"></span>
   </div>
