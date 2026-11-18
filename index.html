@@ -27,6 +27,14 @@
   aside .more[hidden]{display:none}
   .syncmsg{margin:6px 8px 0;font-size:10.5px;color:var(--dim);letter-spacing:.04em;text-transform:uppercase}
   .syncmsg:empty{display:none}
+  .upd{margin:18px 8px 0;display:flex;flex-direction:column;gap:4px;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:#6a6a67}
+  .upd button{all:unset;cursor:pointer;color:var(--dim);align-self:flex-start}
+  .upd button:hover{color:var(--hi)}
+  .upd button[disabled]{cursor:default;color:#6a6a67}
+  .upd button.spin::first-letter{display:inline-block}
+  .upd #syncmsg{color:var(--fg);transition:opacity .4s}
+  .upd #syncmsg.ok{color:#55ff55}.upd #syncmsg.err{color:#ff5555}
+  .upd #syncmsg.fade{opacity:0}
   .favs{margin-top:28px}
   .favs[hidden]{display:none}
   .favs h3{margin:0 8px 6px;font-size:11.5px;font-weight:500;letter-spacing:.08em;color:#ff5555;text-transform:uppercase}
@@ -100,7 +108,7 @@
   @media (max-width:820px){
     .app{grid-template-columns:1fr;gap:16px;padding-top:16px}
     aside{position:static;margin-top:0}
-    aside ul{display:grid;grid-template-columns:repeat(4,1fr)}
+    aside ul{display:grid;grid-template-columns:repeat(3,1fr)}
     aside button{font-size:14px;justify-content:center;padding:7px 2px} aside button span{display:none}
     aside .more{margin:8px 8px 0}
       .r{grid-template-columns:96px minmax(0,1fr) auto;gap:4px 10px}
@@ -124,10 +132,9 @@
     <li><button data-f="all" aria-pressed="true">All<span id="n-all"></span></button></li>
     <li><button data-f="family" aria-pressed="false">Family<span id="n-family"></span></button></li>
     <li><button data-f="adult" aria-pressed="false">Adults<span id="n-adult"></span></button></li>
-    <li><button data-f="away" aria-pressed="false">Beyond<span id="n-away"></span></button></li>
   </ul>
+  <div class="upd"><span id="updtxt">Loading…</span><button id="refresh" title="Check for updates">↻ Refresh</button><span id="syncmsg" aria-live="polite"></span></div>
   <button class="more" id="showdel" hidden></button>
-  <div class="syncmsg" id="syncmsg"></div>
   <div class="favs" id="favs" hidden><h3>♥ Favourites</h3><ol id="favlist"></ol></div>
 </aside>
 
@@ -141,7 +148,6 @@
 
   <section data-sec="family"><h2>Family &amp; Kids</h2><div class="board" id="family"></div></section>
   <section data-sec="adult"><h2>Adults</h2><div class="board" id="adult"></div></section>
-  <section data-sec="away"><h2>Beyond Canterbury</h2><div class="board" id="away"></div></section>
   <p class="none" id="none">No matches</p>
 
   <footer>Every event name links to its listing or ticket page.</footer>
@@ -149,59 +155,8 @@
 </div>
 
 <script>
-const EMBED_UPDATED="2026-11-18T22:20:00+13:00"; /* bump whenever the list below is edited */
-let EVENTS = [
-/* ---------- FAMILY ---------- */
-{k:["kids", "magic", "theatre", "show", "indoor"],t:"",c:"family",d:"2026-11-22",when:"Sun 22 Nov",what:"Messy Magic Adventure",url:"https://isaactheatreroyal.co.nz/",where:"Isaac Theatre Royal",note:"Kids' show"},
-{k:["sport", "cricket", "test", "international", "outdoor"],t:"11:00 daily",c:"family",d:"2026-11-27",e:"2026-12-01",when:"27 Nov – 1 Dec",what:"BLACKCAPS v India · Test",url:"https://hagleyoval.co.nz/?p=9335",where:"Hagley Oval",note:""},
-{k:["christmas", "concert", "music", "fireworks", "outdoor", "picnic"],t:"19:30",c:"family",d:"2026-11-28",when:"Sat 28 Nov · 7:30pm",what:"Coca-Cola Christmas in the Park",url:"https://www.coca-cola.com/nz/en/offerings/christmas-in-the-park",where:"North Hagley Park",note:"Picnic + fireworks",tags:["free"]},
-{k:["music", "concert", "tribute", "pop", "taylor-swift", "kids"],t:"",c:"family",d:"2026-11-29",when:"Sun 29 Nov",what:"TAYLOR: A Tribute to the Eras",url:"https://isaactheatreroyal.co.nz/",where:"Isaac Theatre Royal",note:"Swiftie tribute show"},
-{k:["christmas", "parade", "santa", "market", "rides", "outdoor"],t:"11:00–16:30 · parade Sun 14:00",c:"family",d:"2026-12-05",e:"2026-12-06",when:"5–6 Dec",what:"Christmas Show Parade",url:"https://form.jotform.com/260466550823862",where:"Canterbury A&P Showgrounds",note:"Rides, market, Santa"},
-{k:["music", "jazz", "christmas", "concert", "lunchtime", "indoor"],t:"Lunchtime",c:"family",d:"2026-12-07",when:"Mon 7 Dec · lunch",what:"Symposium Dectet: Christmas jazz",url:"https://ccc.govt.nz/news-and-events/whats-on/event/great-hall-lunchtime-concert-series-2026-symposium-dectet",where:"Arts Centre Great Hall",note:"Arts Centre lunchtime series"},
-{k:["christmas", "parade", "santa", "outdoor", "road-trip"],t:"",c:"family",d:"2026-12-11",when:"Fri 11 Dec",what:"Hanmer Springs Christmas Parade",url:"https://hanmerholidayhomes.co.nz/events",where:"Hanmer Springs",note:""},
-{k:["music", "classical", "orchestra", "christmas", "concert", "indoor"],t:"18:30–20:30",c:"family",d:"2026-12-12",when:"Sat 12 Dec",what:"A Very CSO Christmas",url:"https://ccc.govt.nz/news-and-events/whats-on/event/cso-and-rova-present-a-very-cso-christmas",where:"Christchurch Town Hall",note:"Christchurch Symphony Orchestra"},
-{k:["christmas", "parade", "santa", "beach", "outdoor"],t:"10:00–14:00",c:"family",d:"2026-12-12",when:"Mid Dec (Sat)",what:"New Brighton Seaside Christmas Parade",url:"https://ccc.govt.nz/news-and-events/whats-on/event/new-brighton-seaside-christmas-parade",where:"New Brighton",note:"Santa arrives by surf boat",tags:["free","tbc"]},
-{k:["new-year", "fireworks", "kids", "outdoor", "music"],t:"16:00–19:00",c:"family",d:"2026-12-31",when:"Thu 31 Dec · 4–7pm",what:"NYE Kids' Countdown",url:"https://www.christchurchnz.com/visit/whats-on/new-years-eve",where:"North Hagley Park",note:"Ages 4–12",tags:["free","tbc"]},
-{k:["theatre", "play", "outdoor", "picnic", "shakespeare"],t:"19:00 · wknd 16:00",c:"family",d:"2027-01-10",when:"Jan 2027",what:"Anthony Harper Summer Theatre",url:"https://ccc.govt.nz/news-and-events/whats-on",where:"Botanic Gardens",note:"Outdoor play",tags:["free","tbc"]},
-{k:["street-performance", "comedy", "circus", "outdoor", "festival"],t:"All day",c:"family",d:"2027-01-21",e:"2027-01-31",when:"21–31 Jan",what:"World Buskers Festival",url:"https://www.christchurchnz.com/visit/whats-on/world-buskers-festival",where:"Central city",note:"Street shows, circus, comedy",tags:["free"]},
-{k:["sport", "cricket", "t20", "international", "outdoor"],t:"18:00",c:"family",d:"2027-01-24",when:"Sun 24 Jan · 6pm",what:"BLACKCAPS v Sri Lanka · T20",url:"https://hagleyoval.co.nz/?p=9335",where:"Hagley Oval",note:""},
-{k:["kites", "beach", "outdoor", "kids"],t:"12:00–16:00",c:"family",d:"2027-01-30",when:"Late Jan / Feb",what:"Kite Day",url:"https://ccc.govt.nz/news-and-events/whats-on",where:"New Brighton Beach",note:"Bring a kite",tags:["free","tbc"]},
-{k:["sport", "rugby", "super-rugby", "stadium"],t:"19:35",c:"family",d:"2027-02-12",when:"Fri 12 Feb · 7:35pm",what:"Crusaders v Reds · season opener",url:"https://www.rugbypass.com/news/every-new-zealand-teams-season-schedule-for-super-rugby-pacific-2027/",where:"One NZ Stadium",note:"Also home 19 Feb, 6 Mar, 12 Mar"},
-{k:["music", "orchestra", "fireworks", "concert", "outdoor", "picnic"],t:"18:30–21:40",c:"family",d:"2027-02-13",when:"Feb 2027",what:"Mitre10 Sparks",url:"https://www.christchurchnz.com/visit/whats-on/mitre10-sparks",where:"North Hagley Park",note:"CSO + big fireworks",tags:["free","tbc"]},
-{k:["sport", "rugby", "super-rugby", "stadium"],t:"Fri night opener",c:"family",d:"2027-04-02",e:"2027-04-04",when:"2–4 Apr",what:"Super Rugby Super Round",url:"https://www.crusaders.co.nz/latest/news/super-round-returns-to-otautahi-christchurch-in-2027/",where:"One NZ Stadium",note:"All 10 teams, 5 games"},
-{k:["sport", "motorsport", "cars", "racing"],t:"",c:"family",d:"2027-06-01",when:"2027",what:"Supercars Christchurch",url:"https://travel.supercars.com/2027-christchurch",where:"Christchurch",note:"Date not announced",tags:["tbc"]},
-
-/* ---------- ADULT ---------- */
-{k:["music", "concert", "indie", "rock", "gig", "indoor"],t:"",c:"adult",d:"2026-11-21",when:"Sat 21 Nov",what:"Courtney Barnett",url:"https://isaactheatreroyal.co.nz/",where:"Isaac Theatre Royal",note:"Creature of Habit tour"},
-{k:["music", "concert", "punk", "rock", "gig", "arena"],t:"20:00",c:"adult",d:"2026-11-21",when:"Sat 21 Nov",what:"Rise Against + Dropkick Murphys",url:"https://www.rova.nz/events/rise-against-2026",where:"Wolfbrook Arena",note:"Punk double bill"},
-{k:["music", "concert", "acoustic", "folk", "surf", "winery", "outdoor", "road-trip"],t:"14:30",c:"adult",d:"2026-11-22",when:"Sun 22 Nov",what:"Jack Johnson + Ben Harper + John Butler",url:"https://www.livenation.co.nz/show/1670946/jack-johnson-surfilmusic-tour/north%20canterbury/2026-11-22/en",where:"Waipara Winehouse",note:"",tags:["sold"]},
-{k:["music", "concert", "pop", "britpop", "stadium"],t:"18:00",c:"adult",d:"2026-11-28",when:"Sat 28 Nov",what:"Robbie Williams · BRITPOP tour",url:"https://www.rova.nz/events/robbie-williams--britpop-world-tour-new-zealand",where:"One NZ Stadium",note:"w/ Drax Project"},
-{k:["theatre", "musical", "rock", "indoor"],t:"19:30 + matinees",c:"adult",d:"2026-12-02",e:"2026-12-06",when:"2–6 Dec",what:"Jesus Christ Superstar",url:"https://isaactheatreroyal.co.nz/jesuschristsuperstar",where:"Isaac Theatre Royal",note:"Touring West End production"},
-{k:["wine", "food", "festival", "outdoor", "music", "drinks"],t:"11:30–19:00",c:"adult",d:"2026-12-05",when:"Sat 5 Dec",what:"South Island Wine & Food Festival",url:"https://www.scenichotelgroup.co.nz/christchurch/whats-on-christchurch/",where:"North Hagley Park",note:""},
-{k:["comedy", "talk", "book", "indoor"],t:"",c:"adult",d:"2026-12-10",when:"Thu 10 Dec",what:"Adam Kay",url:"https://www.stereoboard.com/venues/christchurch/isaac-theatre",where:"Isaac Theatre Royal",note:"Comedy / talk"},
-{k:["comedy", "stand-up", "indoor"],t:"19:00",c:"adult",d:"2026-12-11",when:"Fri 11 Dec · 7pm",what:"Urzila Carlson: Fatty On A Yacht",url:"https://happeningnext.com/event/jesus-christ-superstar-eid3a0djogodj",where:"Christchurch Town Hall",note:"Comedy"},
-{k:["talk", "motorsport", "f1", "indoor"],t:"",c:"adult",d:"2026-12-12",e:"2026-12-15",when:"12 & 15 Dec",what:"An Evening with Guenther Steiner",url:"https://isaactheatreroyal.co.nz/",where:"Isaac Theatre Royal",note:"F1 talk"},
-{k:["music", "festival", "dance", "electronic", "dj", "outdoor"],t:"12:30–22:30",c:"adult",d:"2026-12-28",when:"Mon 28 Dec · 12:30pm",what:"Lakes Festival",url:"https://www.rova.nz/events/lakes-festival-2026",where:"North Hagley Park",note:"Armand Van Helden, Netsky, Mall Grab"},
-{k:["new-year", "fireworks", "music", "party", "outdoor"],t:"20:00–00:15",c:"adult",d:"2026-12-31",when:"Thu 31 Dec · 8pm–12",what:"NYE party + midnight fireworks",url:"https://www.christchurchnz.com/visit/whats-on/new-years-eve",where:"North Hagley Park",note:"Best for 15+",tags:["free","tbc"]},
-{k:["music", "concert", "rock", "stadium"],t:"",c:"adult",d:"2027-01-19",when:"Tue 19 Jan",what:"Foo Fighters",url:"https://www.chrislynchmedia.com/?p=47352",where:"One NZ Stadium",note:"Under the roof"},
-{k:["music", "concert", "rock", "new-wave", "gig", "indoor"],t:"",c:"adult",d:"2027-01-23",when:"Sat 23 Jan",what:"Joe Jackson",url:"https://tickets.songkick.com/metro-areas/31443-new-zealand-christchurch/2027",where:"Christchurch Town Hall",note:""},
-{k:["beer", "craft-beer", "festival", "drinks", "music", "outdoor"],t:"",c:"adult",d:"2027-01-30",when:"Sat 30 Jan",what:"Great Kiwi Beer Festival",url:"https://www.rova.nz/events/the-great-kiwi-beer-festival-2027",where:"Hagley Park",note:"300+ beers, live music"},
-{k:["music", "festival", "retro", "heritage", "outdoor"],t:"",c:"adult",d:"2027-02-06",when:"Feb 2027",what:"Nostalgia Festival",url:"https://setlineapp.com/festivals/nostalgia-festival-2027",where:"Ferrymead Heritage Park",note:"Music in a 1900s township",tags:["tbc"]},
-{k:["music", "festival", "rock", "dance", "electronic", "indie", "outdoor"],t:"",c:"adult",d:"2027-02-26",e:"2027-02-27",when:"26–27 Feb",what:"Electric Avenue",url:"https://www.rova.nz/events/electric-avenue-2027",where:"Hagley Park",note:"Kings of Leon, Calvin Harris, Kasabian, Underworld",tags:["sold"]},
-{k:["music", "concert", "rock", "80s", "new-wave", "arena"],t:"",c:"adult",d:"2027-03-01",when:"Mon 1 Mar",what:"Simple Minds + Gary Numan",url:"https://www.eventworld.com/christchurch/concerts/pop",where:"Wolfbrook Arena",note:""},
-{k:["music", "concert", "rock", "pop", "arena"],t:"",c:"adult",d:"2027-03-12",when:"Fri 12 Mar",what:"Bryan Adams + Natalie Imbruglia",url:"https://www.rova.nz/events/bryan-adams-announces-roll-with-the-punches-tour-to-new-zealand-2027",where:"Wolfbrook Arena",note:""},
-{k:["whisky", "spirits", "tasting", "festival", "drinks", "indoor"],t:"13:00–18:00",c:"adult",d:"2027-03-12",e:"2027-03-14",when:"12–14 Mar",what:"DramFest (whisky festival)",url:"https://events.humanitix.com/dramfest-2027",where:"Te Pae",note:"10th anniversary"},
-{k:["wine", "food", "festival", "outdoor", "music", "drinks", "road-trip"],t:"",c:"adult",d:"2027-03-13",when:"Sat 13 Mar",what:"North Canterbury Wine & Food Festival",url:"https://hanmerholidayhomes.co.nz/events",where:"Glenmark Domain, Waipara",note:"Under the oaks"},
-{k:["music", "concert", "pop", "arena"],t:"19:30",c:"adult",d:"2027-03-16",when:"Tue 16 Mar",what:"Ronan Keating",url:"https://www.eventworld.com/ronan-keating-christchurch-tickets-16-03-2027/event/565854",where:"Wolfbrook Arena",note:""},
-{k:["music", "concert", "pop", "boyband", "arena"],t:"19:00",c:"adult",d:"2027-07-30",when:"Fri 30 Jul",what:"Westlife",url:"https://www.eventworld.com/westlife-christchurch-tickets-30-07-2027/event/408222",where:"Wolfbrook Arena",note:""},
-
-/* ---------- BEYOND ---------- */
-{k:["music", "concert", "pop", "soul", "festival", "outdoor", "road-trip"],t:"",c:"away",d:"2027-01-30",e:"2027-01-31",when:"30–31 Jan",what:"Summer Concert Tour: Seal + Bastille",url:"https://www.1news.co.nz/2026/09/25/seal-bastille-to-headline-greenstone-summer-concert-2027/",where:"Wānaka (30th) · Taupō (31st)",note:"Seal's first NZ visit"},
-{k:["music", "concert", "pop", "funk", "stadium", "road-trip"],t:"",c:"away",d:"2027-03-13",e:"2027-03-16",when:"13, 14 & 16 Mar",what:"Bruno Mars · The Romantic Tour",url:"https://www.1news.co.nz/2026/09/03/bruno-mars-adds-third-auckland-show/",where:"Eden Park, Auckland",note:"Only NZ dates; w/ Tyla"},
-{k:["sport", "football", "soccer", "football-ferns", "international"],t:"Opens Thu 24 Jun",c:"away",d:"2027-06-24",e:"2027-07-25",when:"24 Jun – 25 Jul",what:"FIFA Women's World Cup",url:"https://inside.fifa.com/media-releases/fifa-womens-world-cup-brazil-2027-dates-confirmed",where:"Brazil",note:"Football Ferns have qualified"},
-{k:["sport", "sailing", "yachting", "team-nz", "international"],t:"2 races Sat 10 Jul",c:"away",d:"2027-07-10",e:"2027-07-18",when:"10–18 Jul",what:"America's Cup Match",url:"https://www.boatingnz.co.nz/2026/01/louis-vuitton-38th-americas-cup-partnership-launched-in-naples/",where:"Naples, Italy",note:"Team NZ defending"},
-{k:["sport", "rugby", "all-blacks", "international"],t:"ABs first game 18:15 NZT",c:"away",d:"2027-10-01",e:"2027-11-13",when:"1 Oct – 13 Nov",what:"Rugby World Cup",url:"https://www.allblacks.com/news/all-blacks-rugby-world-cup-2027-campaign-to-kick-off-against-chile",where:"Australia",note:"ABs v Chile 2 Oct (Perth), v Wallabies 9 Oct (Sydney), v Hong Kong 15 Oct (Melb)"}
-];
+let EVENTS=[];          /* loaded from events.json (and JSONBin on Netlify) */
+let DATA_UPDATED=null;
 
 const today=new Date(); today.setHours(0,0,0,0);
 const week=new Date(today); week.setDate(week.getDate()+7);
@@ -267,26 +222,37 @@ const strip=evs=>evs.map(e=>({id:e.id,...e}));  // keep ids so renaming an event
 const setSync=t=>{const el=document.getElementById("syncmsg"); if(el) el.textContent=t};
 async function binGet(){const r=await fetch("/api/bin",{cache:"no-store"}); if(r.status===503||r.status===404) return null; if(!r.ok) throw new Error("HTTP "+r.status); return (await r.json())||{};}
 async function binPut(rec){const r=await fetch("/api/bin",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(rec)}); if(!r.ok) throw new Error("HTTP "+r.status);}
-async function binLoad(){
-  if(!BIN_ON) return;
-  try{
-    const rec=await binGet(); if(rec===null) return;   // not set up on Netlify yet
-    binOK=true;
-    const hasEvents=Array.isArray(rec.events)&&rec.events.length;
-    const binWins=hasEvents&&new Date(rec.updated||0)>=new Date(EMBED_UPDATED);
-    if(binWins){EVENTS=rec.events; prepEvents(); buildHay();}
-    PREFS={...PREFS,...(rec.prefs||{})}; cache();
-    if(!binWins) await binPut({updated:EMBED_UPDATED,events:strip(EVENTS),prefs:PREFS});
-    else if(JSON.stringify(rec.prefs||{})!==JSON.stringify(PREFS)) await binPut({...rec,prefs:PREFS});
-    renderBoards(); setSync("");
-  }catch(err){setSync("Sync failed ("+err.message+")")}
+async function fetchFile(){
+  const r=await fetch("events.json?t="+Date.now(),{cache:"no-store"});
+  if(!r.ok) throw new Error("events.json HTTP "+r.status);
+  return r.json();
+}
+function useEvents(list,updated){EVENTS=list; prepEvents(); buildHay(); DATA_UPDATED=updated||null;}
+async function loadData(){
+  const file=await fetchFile();
+  let chosen={events:file.events,updated:file.updated};
+  if(BIN_ON){
+    try{
+      const rec=await binGet();
+      if(rec!==null){
+        binOK=true;
+        const hasEvents=Array.isArray(rec.events)&&rec.events.length;
+        const binWins=hasEvents&&new Date(rec.updated||0)>=new Date(file.updated||0);
+        if(binWins) chosen={events:rec.events,updated:rec.updated};
+        if(rec.prefs&&Object.keys(rec.prefs).length) PREFS=rec.prefs; cache();
+        if(!binWins) await binPut({updated:file.updated,events:file.events,prefs:PREFS});
+        else if(JSON.stringify(rec.prefs||{})!==JSON.stringify(PREFS)) await binPut({...rec,prefs:PREFS});
+      }
+    }catch(err){ /* bin is optional; carry on with events.json */ }
+  }
+  useEvents(chosen.events,chosen.updated);
 }
 let binTimer=null;
 function binSavePrefs(){
   if(!binOK) return;
   clearTimeout(binTimer);
   binTimer=setTimeout(async()=>{
-    try{const rec=(await binGet())||{}; rec.prefs=PREFS; if(!Array.isArray(rec.events)){rec.events=strip(EVENTS);rec.updated=EMBED_UPDATED} await binPut(rec); setSync("");}
+    try{const rec=(await binGet())||{}; rec.prefs=PREFS; if(!Array.isArray(rec.events)){rec.events=strip(EVENTS);rec.updated=DATA_UPDATED} await binPut(rec); setSync("");}
     catch(err){setSync("Sync failed ("+err.message+")")}
   },700);
 }
@@ -307,7 +273,7 @@ function binSavePrefs(){
 })();
 
 function renderBoards(){
-["family","adult","away"].forEach(cat=>{
+["family","adult"].forEach(cat=>{
   const list=EVENTS.filter(e=>e.c===cat).sort((a,b)=>a.d.localeCompare(b.d));
   document.getElementById(cat).innerHTML=list.map(e=>{
     const [cls,label]=status(e);
@@ -331,7 +297,7 @@ function renderBoards(){
 });
 const live=EVENTS.filter(e=>!(PREFS[e.id]||{}).removed);
 const up=live.filter(e=>end(e)>=today);
-["family","adult","away"].forEach(c=>document.getElementById("n-"+c).textContent=up.filter(e=>e.c===c).length);
+["family","adult"].forEach(c=>document.getElementById("n-"+c).textContent=up.filter(e=>e.c===c).length);
 document.getElementById("n-all").textContent=up.length;
 const nDel=EVENTS.length-live.length, sd=document.getElementById("showdel");
 sd.hidden=!nDel; sd.textContent=(document.body.classList.contains("showdel")?"Hide":"Show")+" removed ("+nDel+")";
@@ -395,7 +361,7 @@ let HAY=[];
 function buildHay(){HAY=EVENTS.map(e=>{
   const dt=start(e);
   const kw=(e.k||[]).map(x=>x+" "+x.replace(/-/g," ")).join(" ");
-  const cat={family:"family kids all ages",adult:"adults night out",away:"beyond away overseas trip"}[e.c];
+  const cat={family:"family kids all ages",adult:"adults night out"}[e.c];
   const text=norm([kw,e.what,e.where,e.note,e.when,e.t||"",(e.tags||[]).join(" "),(e.tags||[]).includes("sold")?"sold out":"",MONTHS[dt.getMonth()],DAYS[dt.getDay()],cat].join(" "));
   return {text,words:text.split(/\s+/).filter(Boolean)};
 });}
@@ -470,7 +436,34 @@ document.addEventListener("keydown",e=>{
 renderBoards();
 document.fonts&&document.fonts.ready.then(placeCursor); placeCursor();
 
-binLoad();
+const fmtUpd=iso=>{if(!iso) return "";const d=new Date(iso);return "Updated "+d.getDate()+" "+MON[d.getMonth()]+", "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");};
+let msgTimer=null;
+function flash(text,kind){
+  const el=document.getElementById("syncmsg"); clearTimeout(msgTimer);
+  el.className=kind||""; el.textContent=text;
+  if(kind==="ok"||kind==="info") msgTimer=setTimeout(()=>{el.classList.add("fade");setTimeout(()=>{el.textContent="";el.className=""},450)},4000);
+}
+async function refresh(manual){
+  const btn=document.getElementById("refresh"), before=new Map(EVENTS.map(e=>[e.id,JSON.stringify(e)]));
+  if(manual){btn.disabled=true; btn.textContent="↻ Checking…"; flash("");}
+  try{
+    await Promise.all([loadData(), manual?new Promise(r=>setTimeout(r,500)):null]);  // keep "Checking…" visible briefly
+    renderBoards(); alignSidebar();
+    document.getElementById("updtxt").textContent=fmtUpd(DATA_UPDATED);
+    if(manual){
+      const added=EVENTS.filter(e=>!before.has(e.id)).length;
+      const changed=EVENTS.filter(e=>before.has(e.id)&&before.get(e.id)!==JSON.stringify(e)).length;
+      const gone=[...before.keys()].filter(id=>!EVENTS.some(e=>e.id===id)).length;
+      const parts=[added&&added+" new",changed&&changed+" changed",gone&&gone+" removed"].filter(Boolean);
+      flash(parts.length?"✓ "+parts.join(" · "):"✓ Up to date","ok");
+    }
+  }catch(err){
+    if(!EVENTS.length) document.getElementById("updtxt").textContent="Couldn't load events";
+    flash(manual?"✕ Couldn't refresh. Try again.":"✕ Couldn't load events","err");
+  }finally{ if(manual){btn.disabled=false; btn.textContent="↻ Refresh";} }
+}
+document.getElementById("refresh").onclick=()=>refresh(true);
+refresh(false);
 function alignSidebar(){
   if(matchMedia("(max-width:820px)").matches){document.documentElement.style.removeProperty("--list-top");return;}
   const main=document.querySelector("main"), h=[...document.querySelectorAll("section:not(.hidden):not(.empty) h2")][0];

@@ -2,9 +2,9 @@
 
 A single-page, departures-board style list of upcoming events in Christchurch and Canterbury, split into Family & Kids, Adults, and Beyond Canterbury.
 
-- Everything lives in `index.html` (no build step).
-- Events are in the `EVENTS` array near the bottom of the file. Each entry:
-  `{c:"family"|"adult"|"away", d:"YYYY-MM-DD", e:"YYYY-MM-DD" (optional end), when, what, url, where, note, tags:["free","sold","tbc","r18","sport"]}`
+- The page is `index.html` (no build step). Events live in `events.json`, with an `updated` timestamp — bump it whenever you edit the list.
+- Each event entry:
+  `{id, c:"family"|"adult", d:"YYYY-MM-DD", e:"YYYY-MM-DD" (optional end), t:"time", when, what, url, where, note, k:[keywords], tags:["free","sold","tbc"]}`
 - Past events show as DEPARTED automatically based on today's date.
 - Fuzzy search: press `/` to focus, `Esc` to clear.
 
@@ -28,4 +28,6 @@ There's no sign-in: anyone with the site link can heart or remove events.
 
 Bin shape: `{ "updated": ISO date, "events": [...], "prefs": { "<event id>": {fav, vote, removed} } }`.
 Edit events at jsonbin.io and reload the site to see them. Keep each event's `id` so its hearts stay attached.
-When `EMBED_UPDATED` in `index.html` is newer than the bin's `updated`, the list in the code replaces the bin's list (prefs are kept). Bump `EMBED_UPDATED` whenever you change the list in code.
+When `events.json`'s `updated` is newer than the bin's `updated`, the file's list replaces the bin's list (prefs are kept).
+
+The sidebar shows when the list was last updated; **↻ Refresh** re-fetches `events.json` and the bin and reports what changed.
