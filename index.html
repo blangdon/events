@@ -25,6 +25,15 @@
   aside .more{all:unset;display:block;margin:16px 8px 0;color:var(--dim);font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
   aside .more:hover{color:var(--hi)}
   aside .more[hidden]{display:none}
+  .syncform{margin:10px 8px 0;display:grid;gap:8px}
+  .syncform[hidden]{display:none}
+  .syncform label{display:grid;gap:3px;font-size:10.5px;color:var(--dim);letter-spacing:.06em;text-transform:uppercase}
+  .syncform input{background:#151515;border:0;outline:none;color:var(--hi);font:inherit;font-size:12px;padding:5px 6px}
+  .syncform input:focus{background:#1d1d1d}
+  .syncform div{display:flex;gap:12px}
+  .syncform button{all:unset;cursor:pointer;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--fg);text-decoration:underline;text-underline-offset:3px}
+  .syncmsg{margin:6px 8px 0;font-size:10.5px;color:var(--dim);letter-spacing:.04em;text-transform:uppercase}
+  .syncmsg:empty{display:none}
   .favs{margin-top:28px}
   .favs[hidden]{display:none}
   .favs h3{margin:0 8px 6px;font-size:11.5px;font-weight:500;letter-spacing:.08em;color:#ff5555;text-transform:uppercase}
@@ -122,6 +131,13 @@
     <li><button data-f="away" aria-pressed="false">Beyond<span id="n-away"></span></button></li>
   </ul>
   <button class="more" id="showdel" hidden></button>
+  <button class="more" id="synclink">Sync</button>
+  <form id="syncform" class="syncform" hidden autocomplete="off">
+    <label>Bin ID<input id="binid" spellcheck="false"></label>
+    <label>Access key<input id="binkey" type="password" spellcheck="false"></label>
+    <div><button type="submit">Connect</button><button type="button" id="binoff">Disconnect</button></div>
+  </form>
+  <div class="syncmsg" id="syncmsg"></div>
   <div class="favs" id="favs" hidden><h3>♥ Favourites</h3><ol id="favlist"></ol></div>
 </aside>
 
@@ -143,7 +159,8 @@
 </div>
 
 <script>
-const EVENTS = [
+const EMBED_UPDATED="2026-11-18T22:20:00+13:00"; /* bump whenever the list below is edited */
+let EVENTS = [
 /* ---------- FAMILY ---------- */
 {k:["kids", "magic", "theatre", "show", "indoor"],t:"",c:"family",d:"2026-11-22",when:"Sun 22 Nov",what:"Messy Magic Adventure",url:"https://isaactheatreroyal.co.nz/",where:"Isaac Theatre Royal",note:"Kids' show"},
 {k:["sport", "cricket", "test", "international", "outdoor"],t:"11:00 daily",c:"family",d:"2026-11-27",e:"2026-12-01",when:"27 Nov – 1 Dec",what:"BLACKCAPS v India · Test",url:"https://hagleyoval.co.nz/?p=9335",where:"Hagley Oval",note:""},
@@ -231,7 +248,8 @@ function away(e){
 }
 
 const idOf=e=>(e.what+"-"+e.d).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,80);
-EVENTS.forEach(e=>e.id=idOf(e));
+function prepEvents(){EVENTS.forEach(e=>e.id=e.id||idOf(e));}
+prepEvents();
 const ICON_HEART='<svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>';
 const ICON_UP='<svg viewBox="0 0 24 24"><path d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></svg>';
 
@@ -243,12 +261,47 @@ const cache=()=>{try{localStorage.setItem("whatson-prefs",JSON.stringify(PREFS))
 function savePref(e){
   const p=PREFS[e.id]||{};
   cache();
+  binSavePrefs();
   if(!dbCol) return;
   const doc=dbCol.doc(e.id);
   const empty=!p.vote&&!p.removed&&!p.fav;
   (empty?doc.delete():doc.set({vote:p.vote||0,removed:!!p.removed,fav:!!p.fav,what:e.what,date:e.d,cat:e.c,at:new Date().toISOString()}))
     .catch(()=>{});
 }
+/* ---- JSONBin sync: lets the Netlify site share hearts/likes/removals across devices,
+   and lets the event list be edited at jsonbin.io. The Claude-hosted page can't reach it. ---- */
+let BIN=null; try{BIN=JSON.parse(localStorage.getItem("whatson-jsonbin")||"null")}catch(_){}
+const binURL=id=>"https://api.jsonbin.io/v3/b/"+encodeURIComponent(id);
+const binHdr=()=>({"Content-Type":"application/json","X-Access-Key":BIN.key,"X-Bin-Meta":"false"});
+const strip=evs=>evs.map(e=>({id:e.id,...e}));  // keep ids so renaming an event keeps its hearts/likes
+const setSync=t=>{const el=document.getElementById("syncmsg"); if(el) el.textContent=t};
+const stamp=()=>"Synced "+new Date().toLocaleTimeString("en-NZ",{hour:"2-digit",minute:"2-digit",hour12:false});
+async function binGet(){const r=await fetch(binURL(BIN.id)+"/latest",{headers:binHdr()}); if(!r.ok) throw new Error("HTTP "+r.status); return (await r.json())||{};}
+async function binPut(rec){const r=await fetch(binURL(BIN.id),{method:"PUT",headers:binHdr(),body:JSON.stringify(rec)}); if(!r.ok) throw new Error("HTTP "+r.status);}
+async function binLoad(){
+  if(!BIN) return;
+  setSync("Syncing…");
+  try{
+    const rec=await binGet();
+    const hasEvents=Array.isArray(rec.events)&&rec.events.length;
+    const binWins=hasEvents&&new Date(rec.updated||0)>=new Date(EMBED_UPDATED);
+    if(binWins){EVENTS=rec.events; prepEvents(); buildHay();}
+    PREFS={...PREFS,...(rec.prefs||{})}; cache();
+    if(!binWins) await binPut({updated:EMBED_UPDATED,events:strip(EVENTS),prefs:PREFS});
+    else if(JSON.stringify(rec.prefs||{})!==JSON.stringify(PREFS)) await binPut({...rec,prefs:PREFS});
+    renderBoards(); setSync(stamp());
+  }catch(err){setSync("Sync failed ("+err.message+")")}
+}
+let binTimer=null;
+function binSavePrefs(){
+  if(!BIN) return;
+  clearTimeout(binTimer);
+  binTimer=setTimeout(async()=>{
+    try{const rec=await binGet(); rec.prefs=PREFS; if(!Array.isArray(rec.events)){rec.events=strip(EVENTS);rec.updated=EMBED_UPDATED} await binPut(rec); setSync(stamp());}
+    catch(err){setSync("Sync failed ("+err.message+")")}
+  },700);
+}
+
 (async()=>{
   try{
     const db=window.claude&&await claude.use("db"); if(!db) return;
@@ -349,13 +402,15 @@ document.querySelectorAll("aside button[data-f]").forEach(b=>b.onclick=()=>{setF
 const MONTHS=["january","february","march","april","may","june","july","august","september","october","november","december"];
 const DAYS=["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
 const norm=t=>t.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9: ]+/g," ");
-const HAY=EVENTS.map(e=>{
+let HAY=[];
+function buildHay(){HAY=EVENTS.map(e=>{
   const dt=start(e);
   const kw=(e.k||[]).map(x=>x+" "+x.replace(/-/g," ")).join(" ");
   const cat={family:"family kids all ages",adult:"adults night out",away:"beyond away overseas trip"}[e.c];
   const text=norm([kw,e.what,e.where,e.note,e.when,e.t||"",(e.tags||[]).join(" "),(e.tags||[]).includes("sold")?"sold out":"",MONTHS[dt.getMonth()],DAYS[dt.getDay()],cat].join(" "));
   return {text,words:text.split(/\s+/).filter(Boolean)};
-});
+});}
+buildHay();
 function osa(a,b){const m=a.length,n=b.length,d=[];for(let i=0;i<=m;i++)d[i]=[i];for(let j=0;j<=n;j++)d[0][j]=j;
   for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){const c=a[i-1]===b[j-1]?0:1;d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+c);
   if(i>1&&j>1&&a[i-1]===b[j-2]&&a[i-2]===b[j-1])d[i][j]=Math.min(d[i][j],d[i-2][j-2]+1)}return d[m][n]}
@@ -417,12 +472,30 @@ function runSearch(){
 qEl.addEventListener("input",()=>{placeCursor();runSearch()});
 document.getElementById("sbox").addEventListener("click",()=>qEl.focus());
 document.addEventListener("keydown",e=>{
+  const ae=document.activeElement;
+  if(ae&&ae!==qEl&&/INPUT|TEXTAREA/.test(ae.tagName)) return;
   if(document.activeElement===qEl){ if(e.key==="Escape"){qEl.value="";placeCursor();runSearch()} return; }
   if(e.key.length===1&&!e.metaKey&&!e.ctrlKey&&!e.altKey){qEl.focus()}
   if(e.key==="Backspace"){qEl.focus()}
 });
 renderBoards();
 document.fonts&&document.fonts.ready.then(placeCursor); placeCursor();
+
+(function syncUI(){
+  const link=document.getElementById("synclink"), form=document.getElementById("syncform");
+  if(/claude/i.test(location.hostname)){link.hidden=true;return;}   // CSP blocks jsonbin in the Claude page
+  const label=()=>link.textContent=BIN?"Sync ●":"Sync";
+  label();
+  link.onclick=()=>{form.hidden=!form.hidden; if(!form.hidden){document.getElementById("binid").value=BIN?BIN.id:""; document.getElementById("binkey").value=BIN?BIN.key:""; document.getElementById("binid").focus();}};
+  form.onsubmit=ev=>{ev.preventDefault();
+    const id=document.getElementById("binid").value.trim(), key=document.getElementById("binkey").value.trim();
+    if(!id||!key){setSync("Need both bin ID and key");return;}
+    BIN={id,key}; try{localStorage.setItem("whatson-jsonbin",JSON.stringify(BIN))}catch(_){}
+    form.hidden=true; label(); binLoad();
+  };
+  document.getElementById("binoff").onclick=()=>{BIN=null; try{localStorage.removeItem("whatson-jsonbin")}catch(_){}; form.hidden=true; label(); setSync("Disconnected");};
+  binLoad();
+})();
 </script>
 </body>
 </html>
