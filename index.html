@@ -25,13 +25,6 @@
   aside .more{all:unset;display:block;margin:16px 8px 0;color:var(--dim);font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
   aside .more:hover{color:var(--hi)}
   aside .more[hidden]{display:none}
-  .syncform{margin:10px 8px 0;display:grid;gap:8px}
-  .syncform[hidden]{display:none}
-  .syncform label{display:grid;gap:3px;font-size:10.5px;color:var(--dim);letter-spacing:.06em;text-transform:uppercase}
-  .syncform input{background:#151515;border:0;outline:none;color:var(--hi);font:inherit;font-size:12px;padding:5px 6px}
-  .syncform input:focus{background:#1d1d1d}
-  .syncform div{display:flex;gap:12px}
-  .syncform button{all:unset;cursor:pointer;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--fg);text-decoration:underline;text-underline-offset:3px}
   .syncmsg{margin:6px 8px 0;font-size:10.5px;color:var(--dim);letter-spacing:.04em;text-transform:uppercase}
   .syncmsg:empty{display:none}
   .favs{margin-top:28px}
@@ -131,12 +124,6 @@
     <li><button data-f="away" aria-pressed="false">Beyond<span id="n-away"></span></button></li>
   </ul>
   <button class="more" id="showdel" hidden></button>
-  <button class="more" id="synclink">Sync</button>
-  <form id="syncform" class="syncform" hidden autocomplete="off">
-    <label>Bin ID<input id="binid" spellcheck="false"></label>
-    <label>Access key<input id="binkey" type="password" spellcheck="false"></label>
-    <div><button type="submit">Connect</button><button type="button" id="binoff">Disconnect</button></div>
-  </form>
   <div class="syncmsg" id="syncmsg"></div>
   <div class="favs" id="favs" hidden><h3>♥ Favourites</h3><ol id="favlist"></ol></div>
 </aside>
@@ -268,36 +255,35 @@ function savePref(e){
   (empty?doc.delete():doc.set({vote:p.vote||0,removed:!!p.removed,fav:!!p.fav,what:e.what,date:e.d,cat:e.c,at:new Date().toISOString()}))
     .catch(()=>{});
 }
-/* ---- JSONBin sync: lets the Netlify site share hearts/likes/removals across devices,
-   and lets the event list be edited at jsonbin.io. The Claude-hosted page can't reach it. ---- */
-let BIN=null; try{BIN=JSON.parse(localStorage.getItem("whatson-jsonbin")||"null")}catch(_){}
-const binURL=id=>"https://api.jsonbin.io/v3/b/"+encodeURIComponent(id);
-const binHdr=()=>({"Content-Type":"application/json","X-Access-Key":BIN.key,"X-Bin-Meta":"false"});
+/* ---- JSONBin sync via the site's /api/bin Netlify function (key lives in Netlify, not here).
+   Shares hearts/likes/removals across devices and lets the event list be edited at jsonbin.io.
+   Skipped on the Claude-hosted page, which has no /api. ---- */
+const BIN_ON=!/claude/i.test(location.hostname)&&/^https?:$/.test(location.protocol);
+let binOK=false;
 const strip=evs=>evs.map(e=>({id:e.id,...e}));  // keep ids so renaming an event keeps its hearts/likes
 const setSync=t=>{const el=document.getElementById("syncmsg"); if(el) el.textContent=t};
-const stamp=()=>"Synced "+new Date().toLocaleTimeString("en-NZ",{hour:"2-digit",minute:"2-digit",hour12:false});
-async function binGet(){const r=await fetch(binURL(BIN.id)+"/latest",{headers:binHdr()}); if(!r.ok) throw new Error("HTTP "+r.status); return (await r.json())||{};}
-async function binPut(rec){const r=await fetch(binURL(BIN.id),{method:"PUT",headers:binHdr(),body:JSON.stringify(rec)}); if(!r.ok) throw new Error("HTTP "+r.status);}
+async function binGet(){const r=await fetch("/api/bin",{cache:"no-store"}); if(r.status===503||r.status===404) return null; if(!r.ok) throw new Error("HTTP "+r.status); return (await r.json())||{};}
+async function binPut(rec){const r=await fetch("/api/bin",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(rec)}); if(!r.ok) throw new Error("HTTP "+r.status);}
 async function binLoad(){
-  if(!BIN) return;
-  setSync("Syncing…");
+  if(!BIN_ON) return;
   try{
-    const rec=await binGet();
+    const rec=await binGet(); if(rec===null) return;   // not set up on Netlify yet
+    binOK=true;
     const hasEvents=Array.isArray(rec.events)&&rec.events.length;
     const binWins=hasEvents&&new Date(rec.updated||0)>=new Date(EMBED_UPDATED);
     if(binWins){EVENTS=rec.events; prepEvents(); buildHay();}
     PREFS={...PREFS,...(rec.prefs||{})}; cache();
     if(!binWins) await binPut({updated:EMBED_UPDATED,events:strip(EVENTS),prefs:PREFS});
     else if(JSON.stringify(rec.prefs||{})!==JSON.stringify(PREFS)) await binPut({...rec,prefs:PREFS});
-    renderBoards(); setSync(stamp());
+    renderBoards(); setSync("");
   }catch(err){setSync("Sync failed ("+err.message+")")}
 }
 let binTimer=null;
 function binSavePrefs(){
-  if(!BIN) return;
+  if(!binOK) return;
   clearTimeout(binTimer);
   binTimer=setTimeout(async()=>{
-    try{const rec=await binGet(); rec.prefs=PREFS; if(!Array.isArray(rec.events)){rec.events=strip(EVENTS);rec.updated=EMBED_UPDATED} await binPut(rec); setSync(stamp());}
+    try{const rec=(await binGet())||{}; rec.prefs=PREFS; if(!Array.isArray(rec.events)){rec.events=strip(EVENTS);rec.updated=EMBED_UPDATED} await binPut(rec); setSync("");}
     catch(err){setSync("Sync failed ("+err.message+")")}
   },700);
 }
@@ -481,21 +467,7 @@ document.addEventListener("keydown",e=>{
 renderBoards();
 document.fonts&&document.fonts.ready.then(placeCursor); placeCursor();
 
-(function syncUI(){
-  const link=document.getElementById("synclink"), form=document.getElementById("syncform");
-  if(/claude/i.test(location.hostname)){link.hidden=true;return;}   // CSP blocks jsonbin in the Claude page
-  const label=()=>link.textContent=BIN?"Sync ●":"Sync";
-  label();
-  link.onclick=()=>{form.hidden=!form.hidden; if(!form.hidden){document.getElementById("binid").value=BIN?BIN.id:""; document.getElementById("binkey").value=BIN?BIN.key:""; document.getElementById("binid").focus();}};
-  form.onsubmit=ev=>{ev.preventDefault();
-    const id=document.getElementById("binid").value.trim(), key=document.getElementById("binkey").value.trim();
-    if(!id||!key){setSync("Need both bin ID and key");return;}
-    BIN={id,key}; try{localStorage.setItem("whatson-jsonbin",JSON.stringify(BIN))}catch(_){}
-    form.hidden=true; label(); binLoad();
-  };
-  document.getElementById("binoff").onclick=()=>{BIN=null; try{localStorage.removeItem("whatson-jsonbin")}catch(_){}; form.hidden=true; label(); setSync("Disconnected");};
-  binLoad();
-})();
+binLoad();
 </script>
 </body>
 </html>

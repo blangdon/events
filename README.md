@@ -12,14 +12,19 @@ Deployed as a static site (Netlify reads `netlify.toml`, publish directory is th
 
 ## JSONBin sync (optional)
 
-The Netlify site can sync hearts, likes and removals across devices, and load the event list from a JSONBin bin you can edit in the browser.
+Shares hearts, likes and removals across every device, and loads the event list from a JSONBin bin you can edit in the browser. No setup on each device: the key lives in Netlify, and the site talks to JSONBin through the `/api/bin` function (`netlify/functions/bin.mjs`).
 
 1. Make a free account at jsonbin.io.
 2. Create a bin with the content `{}` and copy its **Bin ID**.
 3. Under **API Keys → Access Keys**, create a key with **Bins: Read + Update** only, and copy it.
-4. On the site, click **Sync** in the sidebar, paste both, and click **Connect**. The first connect copies the current events into the bin.
+4. In Netlify: **Site configuration → Environment variables**, add
+   - `JSONBIN_BIN_ID` = the Bin ID
+   - `JSONBIN_ACCESS_KEY` = the access key
+5. Redeploy (Deploys → Trigger deploy). The first visit copies the current events into the bin.
 
-Keys are stored only in your browser (localStorage), never in this repo. Connect once on each device.
+Until those are set, the site works as normal and saves prefs in each browser.
+
+There's no sign-in: anyone with the site link can heart or remove events.
 
 Bin shape: `{ "updated": ISO date, "events": [...], "prefs": { "<event id>": {fav, vote, removed} } }`.
 Edit events at jsonbin.io and reload the site to see them. Keep each event's `id` so its hearts stay attached.
