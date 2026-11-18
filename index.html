@@ -223,7 +223,7 @@ function status(e){
 }
 const L={free:"FREE",sold:"SOLD OUT",tbc:"TBC"};
 function away(e){
-  if(isTBC(e)) return "—";
+  if(isTBC(e)) return "TBC";
   const n=Math.round((start(e)-today)/864e5);
   if(n<=0) return end(e)>=today&&n<0?"ON NOW":"TODAY";
   if(n===1) return "TOMORROW";
@@ -270,7 +270,7 @@ function renderBoards(){
   document.getElementById(cat).innerHTML=list.map(e=>{
     const [cls,label]=status(e);
     const p=PREFS[e.id]||{};
-    const order=["sold","free","tbc"];
+    const order=["sold","free"];
     const tl=order.filter(t=>(e.tags||[]).includes(t)).map(t=>`<span class="tg ${t}">${L[t]}</span>`);
     if(cls==="soon") tl.unshift(`<span class="tg soon">THIS WEEK</span>`);
     const rc=["r",cls==="past"?"past":"",p.removed?"removed":""].filter(Boolean).join(" ");
@@ -279,7 +279,7 @@ function renderBoards(){
       <div class="ago">${away(e)}</div>
       <div class="w"><a href="${esc(e.url)}" target="_blank" rel="noopener" class="ttl" data-raw="${esc(e.what)}">${esc(e.what)}</a>${e.note?`<span class="n">${esc(e.note)}</span>`:""}${(e.k||[]).length?`<span class="kw">${e.k.map(x=>`<button class="hk" data-k="${esc(x)}">#${esc(x)}</button>`).join(" ")}</span>`:""}</div>
       <div class="v">${esc(e.where)}</div>
-      <div class="s">${tl.length?tl.join(""):`<span class="onsale">ON SALE</span>`}</div>
+      <div class="s">${tl.length?tl.join(""):isTBC(e)?"":`<span class="onsale">ON SALE</span>`}</div>
       <div class="act">
         <button class="fav" data-a="fav" aria-pressed="${!!p.fav}" title="${p.fav?"Unfavourite":"Favourite"}">${ICON_HEART}</button>
         <button class="up" data-a="up" aria-pressed="${p.vote>0}" title="Like">${ICON_UP}</button>
