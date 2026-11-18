@@ -190,7 +190,7 @@ function dateCol(e){
   const a=start(e); if(!e.e) return fmt(a);
   const b=new Date(e.e+"T00:00:00"), dd=x=>String(x.getDate()).padStart(2,"0");
   return a.getMonth()===b.getMonth()
-    ? DAY[a.getDay()]+" "+dd(a)+" – "+dd(b)+" "+MON[b.getMonth()]
+    ? DAY[a.getDay()]+" "+dd(a)+"–"+dd(b)+" "+MON[b.getMonth()]
     : fmt(a)+" – "+dd(b)+" "+MON[b.getMonth()];
 }
 function status(e){
