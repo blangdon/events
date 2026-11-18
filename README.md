@@ -4,7 +4,7 @@ A single-page, departures-board style list of upcoming events in Christchurch an
 
 - The page is `index.html` (no build step). Events live in `events.json`, with an `updated` timestamp — bump it whenever you edit the list.
 - Each event entry:
-  `{id, c:"family"|"adult", d:"YYYY-MM-DD", e:"YYYY-MM-DD" (optional end), t:"time", when, what, url, where, note, k:[keywords], tags:["free","sold","tbc"]}`
+  `{id, c:"family"|"adult", d:"YYYY-MM-DD", e:"YYYY-MM-DD" (optional end), t:"time", when, what, url, where, note, k:[keywords], tags:["free","sold","tbc"], fav:true (optional, hearted by default)}`. Personal events can leave `url` and `where` empty.
 - Past events show as DEPARTED automatically based on today's date.
 - Fuzzy search: press `/` to focus, `Esc` to clear.
 
@@ -26,7 +26,7 @@ Until those are set, the site works as normal and saves prefs in each browser.
 
 There's no sign-in: anyone with the site link can heart or remove events.
 
-Bin shape: `{ "updated": ISO date, "events": [...], "prefs": { "<event id>": {fav, vote, removed} } }`.
+Bin shape: `{ "updated": ISO date, "events": [...], "prefs": { "<event id>": {fav, removed} } }`.
 Edit events at jsonbin.io and reload the site to see them. Keep each event's `id` so its hearts stay attached.
 When `events.json`'s `updated` is newer than the bin's `updated`, the file's list replaces the bin's list (prefs are kept).
 
