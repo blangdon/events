@@ -10,10 +10,10 @@
 <style>
   :root{--bg:#0a0a0a;--fg:#e8e8e6;--dim:#8a8a87;--rule:#5a5a58;--hi:#ffffff;
     --faint:#6a6a67;--faint2:#5f5f5c;--icon:#4a4a48;--hover:#151515;--red:#ff5555;--green:#55ff55;
-    --soon-bg:#ffffff;--soon-fg:#0a0a0a;--mark:#ffff55;color-scheme:dark}
+    --soon-bg:#ffffff;--soon-fg:#0a0a0a;--mark:#ffff55;--new:#55ffff;color-scheme:dark}
   :root[data-theme="light"]{--bg:#f5f4f0;--fg:#1c1c1b;--dim:#6b6a66;--rule:#c4c3be;--hi:#000000;
     --faint:#85847f;--faint2:#94938e;--icon:#aeada8;--hover:#e8e7e2;--red:#d42f2f;--green:#178a40;
-    --soon-bg:#111111;--soon-fg:#ffffff;--mark:#ffe94d;color-scheme:light}
+    --soon-bg:#111111;--soon-fg:#ffffff;--mark:#ffe94d;--new:#0aa5b8;color-scheme:light}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--fg);font-family:"IBM Plex Mono",ui-monospace,monospace;
     font-size:15px;line-height:1.35;-webkit-font-smoothing:antialiased}
@@ -88,6 +88,9 @@
 
   .tg{display:inline-block;font-size:12px;font-weight:500;letter-spacing:.06em;padding:1px 6px;color:#0a0a0a;line-height:1.5;vertical-align:1px}
   .tg.free{background:#55ff55}.tg.sold{background:#ff5555}.tg.tbc{background:#ff55ff}.tg.soon{background:var(--soon-bg);color:var(--soon-fg)}
+  .tg.new{background:var(--new);color:#0a0a0a}
+  .r.isnew{box-shadow:-7px 0 0 0 var(--bg),-10px 0 0 0 var(--new)}
+  .r.isnew .w a,.r.isnew .w .ttl.plain{color:var(--new)}
   mark{background:var(--mark);color:#0a0a0a;padding:0 1px}
   .r .kw mark{background:var(--mark);color:#0a0a0a}
   .r .kw .hk{all:unset;cursor:pointer}
@@ -174,6 +177,8 @@ const DAY=["SUN","MON","TUE","WED","THU","FRI","SAT"];
 const start=e=>new Date(e.d+"T00:00:00"), end=e=>new Date((e.e||e.d)+"T23:59:59");
 const fmt=dt=>DAY[dt.getDay()]+" "+dt.getDate()+" "+MON[dt.getMonth()];
 const isTBC=e=>(e.tags||[]).includes("tbc");
+/* NEW: events whose `added` date (YYYY-MM-DD) is within the last 7 days */
+const isNew=e=>!!e.added&&(today-new Date(e.added+"T00:00:00"))/864e5<=7&&end(e)>=today;
 function dateCol(e){
   if(isTBC(e)) return e.when.replace(/\s*\(.*\)/,"").split("·")[0].trim().toUpperCase();
   const a=start(e); if(!e.e) return fmt(a);
@@ -289,7 +294,8 @@ function renderBoards(){
     const order=["sold","free"];
     const tl=order.filter(t=>(e.tags||[]).includes(t)).map(t=>`<span class="tg ${t}">${L[t]}</span>`);
     if(cls==="soon") tl.unshift(`<span class="tg soon">THIS WEEK</span>`);
-    const rc=["r",cls==="past"?"past":"",p.removed?"removed":""].filter(Boolean).join(" ");
+    if(isNew(e)) tl.unshift(`<span class="tg new" title="Added ${esc(e.added)}">NEW</span>`);
+    const rc=["r",cls==="past"?"past":"",p.removed?"removed":"",isNew(e)?"isnew":""].filter(Boolean).join(" ");
     return `<div class="${rc}" data-i="${EVENTS.indexOf(e)}">
       <div class="d">${esc(dateCol(e))}<span class="tm">${esc(e.t||"Time TBC")}</span></div>
       <div class="ago">${away(e)}</div>
@@ -368,7 +374,7 @@ function buildHay(){HAY=EVENTS.map(e=>{
   const dt=start(e);
   const kw=(e.k||[]).map(x=>x+" "+x.replace(/-/g," ")).join(" ");
   const cat={family:"family kids all ages",adult:"adults night out"}[e.c];
-  const text=norm([kw,e.what,e.where,e.note,e.when,e.t||"",(e.tags||[]).join(" "),(e.tags||[]).includes("sold")?"sold out":"",MONTHS[dt.getMonth()],DAYS[dt.getDay()],cat].join(" "));
+  const text=norm([kw,e.what,e.where,e.note,e.when,e.t||"",(e.tags||[]).join(" "),(e.tags||[]).includes("sold")?"sold out":"",isNew(e)?"new added":"",MONTHS[dt.getMonth()],DAYS[dt.getDay()],cat].join(" "));
   return {text,words:text.split(/\s+/).filter(Boolean)};
 });}
 buildHay();
